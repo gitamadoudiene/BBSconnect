@@ -2,25 +2,302 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0b0d10;
+
+  /* Premium neutral palette */
+  --ink: #0b0d10;
+  --ink-soft: #15181c;
+  --paper: #fafaf8;
+  --mist: #f3f4f6;
+  --slate: #6b7280;
+  --line: #e5e7eb;
+
+  /* Accent — used sparingly (CTAs, links, badges, hover) */
+  --accent: #146ef5;
+  --accent-deep: #0f62d6;
+  --accent-tint: #eaf2ff;
+
+  /* Reserved for promo badges / strike-through prices only */
+  --sale: #c1443f;
+  --sale-tint: #fbeceb;
+
+  /* Legacy token names kept so every existing component inherits the new
+     palette automatically — do not rename call sites, remap values here. */
+  --brand-navy: var(--ink);
+  --brand-navy-light: var(--ink-soft);
+  --brand-blue: var(--accent);
+  --brand-blue-dark: var(--accent-deep);
+  --brand-blue-light: var(--accent-tint);
+  --brand-red: var(--sale);
+  --brand-gray: var(--mist);
+  --brand-border: var(--line);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --color-mist: var(--mist);
+  --color-slate: var(--slate);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-tint: var(--accent-tint);
+  --color-sale: var(--sale);
+  --color-sale-tint: var(--sale-tint);
+
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-light: var(--brand-navy-light);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-dark: var(--brand-blue-dark);
+  --color-brand-blue-light: var(--brand-blue-light);
+  --color-brand-red: var(--brand-red);
+  --color-brand-gray: var(--brand-gray);
+  --color-brand-border: var(--brand-border);
+
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  scrollbar-color: var(--ink-soft) var(--mist);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-feature-settings: "ss01" 1, "cv01" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ---------- Layout ---------- */
+
+.container-page {
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+@media (min-width: 1024px) {
+  .container-page {
+    padding-inline: 40px;
+  }
+}
+
+.section-space {
+  padding-block: 64px;
+}
+
+@media (min-width: 1024px) {
+  .section-space {
+    padding-block: 120px;
+  }
+}
+
+.section-space-sm {
+  padding-block: 48px;
+}
+
+@media (min-width: 1024px) {
+  .section-space-sm {
+    padding-block: 80px;
+  }
+}
+
+/* ---------- Typography scale ---------- */
+
+.text-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.text-display {
+  font-size: clamp(2.5rem, 3.2vw + 1.6rem, 4.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.text-h1 {
+  font-size: clamp(2rem, 1.6vw + 1.4rem, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+.text-h2 {
+  font-size: clamp(1.5rem, 1vw + 1.15rem, 2.25rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.text-h3 {
+  font-size: 1.25rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.875rem 1.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: background-color 260ms ease, color 260ms ease, border-color 260ms ease, transform 260ms ease;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--ink-soft);
+}
+
+.btn-secondary {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.btn-secondary:hover {
+  border-color: var(--ink);
+}
+
+.btn-inverse {
+  background: #fff;
+  color: var(--ink);
+}
+
+.btn-inverse:hover {
+  background: var(--mist);
+}
+
+.btn-ghost-light {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.btn-ghost-light:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Links & micro-interactions ---------- */
+
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transition: right 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.link-underline:hover::after {
+  right: 0;
+}
+
+.hover-zoom {
+  overflow: hidden;
+}
+
+.hover-zoom img,
+.hover-zoom .zoom-target {
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-zoom:hover img,
+.hover-zoom:hover .zoom-target {
+  transform: scale(1.045);
+}
+
+.card-shadow {
+  box-shadow: 0 1px 2px rgba(11, 13, 16, 0.04), 0 12px 28px -12px rgba(11, 13, 16, 0.12);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1), transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-in {
+  animation: hero-in 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-hero-in {
+    animation: none;
+  }
+  .hover-zoom img,
+  .hover-zoom .zoom-target {
+    transition: none;
+  }
 }
