@@ -1,9 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatFCFA } from "@/lib/format";
 import { deleteProductAction } from "@/actions/products";
-import { PhoneMock } from "@/components/ui/PhoneMock";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,10 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
 
   const products = await prisma.product.findMany({
     where: params.q ? { name: { contains: params.q } } : undefined,
-    include: { category: true },
+    include: {
+      category: true,
+      variants: { orderBy: { position: "asc" }, include: { images: { orderBy: { position: "asc" } } } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -60,53 +63,61 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
             <tr className="border-b border-brand-border bg-brand-gray text-left text-xs uppercase text-brand-navy/50">
               <th className="p-3">Produit</th>
               <th className="p-3">Catégorie</th>
-              <th className="p-3">SKU</th>
+              <th className="p-3">Variantes</th>
               <th className="p-3">Prix</th>
-              <th className="p-3">Stock</th>
+              <th className="p-3">Stock total</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-b border-brand-border/60 last:border-0">
-                <td className="flex items-center gap-3 p-3">
-                  <div className="h-12 w-8 shrink-0 rounded bg-brand-gray p-1">
-                    <PhoneMock color={p.color} variant="back" />
-                  </div>
-                  <div>
+            {products.map((p) => {
+              const prices = p.variants.map((v) => v.price);
+              const minPrice = Math.min(...prices);
+              const maxPrice = Math.max(...prices);
+              const totalStock = p.variants.reduce((s, v) => s + v.stock, 0);
+              const primaryImage =
+                p.variants[0]?.images.find((i) => i.type === "PRIMARY")?.url ?? p.variants[0]?.images[0]?.url;
+
+              return (
+                <tr key={p.id} className="border-b border-brand-border/60 last:border-0">
+                  <td className="flex items-center gap-3 p-3">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded bg-brand-gray">
+                      {primaryImage && <Image src={primaryImage} alt={p.name} fill sizes="48px" className="object-cover" />}
+                    </div>
                     <p className="line-clamp-1 font-medium text-brand-navy">{p.name}</p>
-                    {p.storage && <p className="text-xs text-brand-navy/50">{p.storage}</p>}
-                  </div>
-                </td>
-                <td className="p-3 text-brand-navy/70">{p.category.name}</td>
-                <td className="p-3 text-brand-navy/50">{p.sku}</td>
-                <td className="p-3 font-medium text-brand-navy">{formatFCFA(p.price)}</td>
-                <td className="p-3">
-                  <span className={p.stock <= 5 ? "font-semibold text-amber-600" : "text-brand-navy/70"}>
-                    {p.stock}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <div className="flex items-center justify-end gap-2">
-                    <Link
-                      href={`/dashboard/produits/${p.id}`}
-                      aria-label="Modifier"
-                      className="rounded-md p-2 text-brand-navy/60 hover:bg-brand-blue-light hover:text-brand-blue"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Link>
-                    <form action={deleteProductAction.bind(null, p.id)}>
-                      <button
-                        aria-label="Supprimer"
-                        className="rounded-md p-2 text-brand-navy/60 hover:bg-red-50 hover:text-brand-red"
+                  </td>
+                  <td className="p-3 text-brand-navy/70">{p.category.name}</td>
+                  <td className="p-3 text-brand-navy/50">{p.variants.length}</td>
+                  <td className="p-3 font-medium text-brand-navy">
+                    {minPrice === maxPrice ? formatFCFA(minPrice) : `${formatFCFA(minPrice)} – ${formatFCFA(maxPrice)}`}
+                  </td>
+                  <td className="p-3">
+                    <span className={totalStock <= 5 ? "font-semibold text-amber-600" : "text-brand-navy/70"}>
+                      {totalStock}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/dashboard/produits/${p.id}`}
+                        aria-label="Modifier"
+                        className="rounded-md p-2 text-brand-navy/60 hover:bg-brand-blue-light hover:text-brand-blue"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                      <form action={deleteProductAction.bind(null, p.id)}>
+                        <button
+                          aria-label="Supprimer"
+                          className="rounded-md p-2 text-brand-navy/60 hover:bg-red-50 hover:text-brand-red"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {products.length === 0 && (

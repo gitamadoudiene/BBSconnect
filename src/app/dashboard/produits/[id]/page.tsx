@@ -8,7 +8,15 @@ import { updateProductAction } from "@/actions/products";
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [product, categories] = await Promise.all([
-    prisma.product.findUnique({ where: { id } }),
+    prisma.product.findUnique({
+      where: { id },
+      include: {
+        variants: {
+          orderBy: { position: "asc" },
+          include: { images: { orderBy: { position: "asc" } } },
+        },
+      },
+    }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
@@ -29,16 +37,11 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         submitLabel="Enregistrer les modifications"
         defaultValues={{
           name: product.name,
-          sku: product.sku,
           categoryId: product.categoryId,
-          price: product.price,
-          compareAtPrice: product.compareAtPrice,
-          stock: product.stock,
-          color: product.color,
-          storage: product.storage,
           description: product.description,
           specs: product.specs,
           featured: product.featured,
+          variants: product.variants,
         }}
       />
     </div>

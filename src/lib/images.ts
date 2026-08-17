@@ -34,17 +34,3 @@ export const images = {
     pexels("6699512"), // man on phone near a tram, urban street
   ],
 } as const;
-
-const accessoryImagesBySkuPrefix: Record<string, string> = {
-  "ACC-EAR": images.accessoryAirpods,
-  "ACC-CHRG": images.accessoryCharger,
-  "ACC-CBL": images.accessoryCharger,
-  "ACC-CASE": images.accessoryCase,
-  "ACC-GLS": images.accessoryCase,
-  "ACC-PWR": images.accessoryCharger,
-};
-
-export function accessoryImage(sku: string) {
-  const prefix = Object.keys(accessoryImagesBySkuPrefix).find((p) => sku.startsWith(p));
-  return prefix ? accessoryImagesBySkuPrefix[prefix] : images.accessoryCase;
-}

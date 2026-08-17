@@ -44,7 +44,7 @@ export default function CheckoutPage() {
           address: formData.get("address"),
           city: formData.get("city"),
           paymentMethod: payment,
-          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
         }),
       });
       const data = await res.json();
@@ -133,8 +133,8 @@ export default function CheckoutPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-navy">Résumé</h2>
           <ul className="space-y-2 text-sm">
             {items.map((item) => (
-              <li key={item.productId} className="flex justify-between text-brand-navy/80">
-                <span className="line-clamp-1 pr-2">{item.name} × {item.quantity}</span>
+              <li key={item.variantId} className="flex justify-between text-brand-navy/80">
+                <span className="line-clamp-1 pr-2">{item.productName} × {item.quantity}</span>
                 <span className="shrink-0 font-medium">{formatFCFA(item.price * item.quantity)}</span>
               </li>
             ))}

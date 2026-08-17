@@ -15,38 +15,44 @@ async function requireMerchant() {
   return session;
 }
 
+const variantSchema = z.object({
+  id: z.string().optional(),
+  sku: z.string().min(1, "SKU requis"),
+  colorName: z.string().min(1, "Couleur requise"),
+  colorHex: z.string().min(1),
+  storage: z.string().optional(),
+  price: z.coerce.number().int().min(0),
+  compareAtPrice: z.coerce.number().int().min(0).nullable().optional(),
+  stock: z.coerce.number().int().min(0),
+  images: z.array(z.string().min(1)).min(1, "Au moins une image par variante"),
+});
+
 const productSchema = z.object({
   name: z.string().min(2, "Le nom est requis"),
-  sku: z.string().min(2, "Le SKU est requis"),
   categoryId: z.string().min(1, "La catégorie est requise"),
-  price: z.coerce.number().int().min(0, "Le prix doit être positif"),
-  compareAtPrice: z
-    .string()
-    .transform((v) => (v ? Number(v) : null))
-    .nullable(),
-  stock: z.coerce.number().int().min(0),
-  color: z.string().min(1),
-  storage: z.string().optional(),
   description: z.string().min(1, "La description est requise"),
   specs: z.string().min(1, "Les caractéristiques sont requises"),
   featured: z.coerce.boolean().optional(),
+  variants: z.array(variantSchema).min(1, "Au moins une variante est requise"),
 });
 
 export type ProductFormState = { error?: string } | undefined;
 
 function parseProductForm(formData: FormData) {
+  let variants: unknown = [];
+  try {
+    variants = JSON.parse(String(formData.get("variants") ?? "[]"));
+  } catch {
+    return { success: false as const, error: { issues: [{ message: "Variantes invalides" }] } };
+  }
+
   return productSchema.safeParse({
     name: formData.get("name"),
-    sku: formData.get("sku"),
     categoryId: formData.get("categoryId"),
-    price: formData.get("price"),
-    compareAtPrice: formData.get("compareAtPrice"),
-    stock: formData.get("stock"),
-    color: formData.get("color"),
-    storage: formData.get("storage"),
     description: formData.get("description"),
     specs: formData.get("specs"),
     featured: formData.get("featured") === "on",
+    variants,
   });
 }
 
@@ -61,6 +67,12 @@ export async function createProductAction(
     return { error: parsed.error.issues[0]?.message ?? "Champs invalides" };
   }
 
+  const skus = parsed.data.variants.map((v) => v.sku);
+  const existingSkus = await prisma.productVariant.findMany({ where: { sku: { in: skus } } });
+  if (existingSkus.length > 0) {
+    return { error: `Le SKU "${existingSkus[0].sku}" est déjà utilisé` };
+  }
+
   const baseSlug = slugify(parsed.data.name);
   let slug = baseSlug;
   let counter = 1;
@@ -68,23 +80,33 @@ export async function createProductAction(
     slug = `${baseSlug}-${counter++}`;
   }
 
-  const existingSku = await prisma.product.findUnique({ where: { sku: parsed.data.sku } });
-  if (existingSku) return { error: "Ce SKU est déjà utilisé" };
-
   await prisma.product.create({
     data: {
       name: parsed.data.name,
       slug,
-      sku: parsed.data.sku,
       categoryId: parsed.data.categoryId,
-      price: parsed.data.price,
-      compareAtPrice: parsed.data.compareAtPrice,
-      stock: parsed.data.stock,
-      color: parsed.data.color,
-      storage: parsed.data.storage || null,
       description: parsed.data.description,
       specs: parsed.data.specs,
       featured: parsed.data.featured ?? false,
+      variants: {
+        create: parsed.data.variants.map((v, i) => ({
+          sku: v.sku,
+          colorName: v.colorName,
+          colorHex: v.colorHex,
+          storage: v.storage || null,
+          price: v.price,
+          compareAtPrice: v.compareAtPrice ?? null,
+          stock: v.stock,
+          position: i,
+          images: {
+            create: v.images.map((url, imgIndex) => ({
+              url,
+              type: imgIndex === 0 ? "PRIMARY" : "GALLERY",
+              position: imgIndex,
+            })),
+          },
+        })),
+      },
     },
   });
 
@@ -105,26 +127,86 @@ export async function updateProductAction(
     return { error: parsed.error.issues[0]?.message ?? "Champs invalides" };
   }
 
-  const skuOwner = await prisma.product.findUnique({ where: { sku: parsed.data.sku } });
-  if (skuOwner && skuOwner.id !== productId) {
-    return { error: "Ce SKU est déjà utilisé par un autre produit" };
+  const skuConflicts = await prisma.productVariant.findMany({
+    where: { sku: { in: parsed.data.variants.map((v) => v.sku) }, productId: { not: productId } },
+  });
+  if (skuConflicts.length > 0) {
+    return { error: `Le SKU "${skuConflicts[0].sku}" est déjà utilisé par un autre produit` };
   }
 
-  await prisma.product.update({
-    where: { id: productId },
-    data: {
-      name: parsed.data.name,
-      sku: parsed.data.sku,
-      categoryId: parsed.data.categoryId,
-      price: parsed.data.price,
-      compareAtPrice: parsed.data.compareAtPrice,
-      stock: parsed.data.stock,
-      color: parsed.data.color,
-      storage: parsed.data.storage || null,
-      description: parsed.data.description,
-      specs: parsed.data.specs,
-      featured: parsed.data.featured ?? false,
-    },
+  const existingVariants = await prisma.productVariant.findMany({ where: { productId } });
+  const submittedIds = new Set(parsed.data.variants.map((v) => v.id).filter(Boolean));
+  const removed = existingVariants.filter((v) => !submittedIds.has(v.id));
+
+  if (removed.length > 0) {
+    const removedIds = removed.map((v) => v.id);
+    const orderCount = await prisma.orderItem.count({ where: { variantId: { in: removedIds } } });
+    if (orderCount > 0) {
+      return {
+        error:
+          "Impossible de retirer une variante déjà commandée. Réduisez plutôt son stock à 0.",
+      };
+    }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.product.update({
+      where: { id: productId },
+      data: {
+        name: parsed.data.name,
+        categoryId: parsed.data.categoryId,
+        description: parsed.data.description,
+        specs: parsed.data.specs,
+        featured: parsed.data.featured ?? false,
+      },
+    });
+
+    if (removed.length > 0) {
+      await tx.productVariant.deleteMany({ where: { id: { in: removed.map((v) => v.id) } } });
+    }
+
+    for (let i = 0; i < parsed.data.variants.length; i++) {
+      const v = parsed.data.variants[i];
+      const isExisting = v.id && existingVariants.some((ev) => ev.id === v.id);
+
+      const variant = isExisting
+        ? await tx.productVariant.update({
+            where: { id: v.id! },
+            data: {
+              sku: v.sku,
+              colorName: v.colorName,
+              colorHex: v.colorHex,
+              storage: v.storage || null,
+              price: v.price,
+              compareAtPrice: v.compareAtPrice ?? null,
+              stock: v.stock,
+              position: i,
+            },
+          })
+        : await tx.productVariant.create({
+            data: {
+              productId,
+              sku: v.sku,
+              colorName: v.colorName,
+              colorHex: v.colorHex,
+              storage: v.storage || null,
+              price: v.price,
+              compareAtPrice: v.compareAtPrice ?? null,
+              stock: v.stock,
+              position: i,
+            },
+          });
+
+      await tx.productImage.deleteMany({ where: { variantId: variant.id } });
+      await tx.productImage.createMany({
+        data: v.images.map((url, imgIndex) => ({
+          url,
+          type: imgIndex === 0 ? ("PRIMARY" as const) : ("GALLERY" as const),
+          position: imgIndex,
+          variantId: variant.id,
+        })),
+      });
+    }
   });
 
   revalidatePath("/dashboard/produits");
@@ -135,7 +217,7 @@ export async function updateProductAction(
 export async function deleteProductAction(productId: string) {
   await requireMerchant();
 
-  const orderItemCount = await prisma.orderItem.count({ where: { productId } });
+  const orderItemCount = await prisma.orderItem.count({ where: { variant: { productId } } });
   if (orderItemCount > 0) {
     redirect("/dashboard/produits?error=has-orders");
   }

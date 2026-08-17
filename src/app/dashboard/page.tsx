@@ -28,11 +28,11 @@ export default async function DashboardOverviewPage() {
     await Promise.all([
       prisma.order.findMany({ where: { status: { not: "CANCELLED" } } }),
       prisma.product.count(),
-      prisma.product.count({ where: { stock: { lte: 5 } } }),
+      prisma.productVariant.count({ where: { stock: { lte: 5 } } }),
       prisma.user.count({ where: { role: "CUSTOMER" } }),
       prisma.order.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
       prisma.orderItem.groupBy({
-        by: ["productId"],
+        by: ["variantId"],
         _sum: { quantity: true },
         orderBy: { _sum: { quantity: "desc" } },
         take: 5,
@@ -47,10 +47,13 @@ export default async function DashboardOverviewPage() {
   });
   const maxStatusCount = Math.max(1, ...statusCounts.map((s) => s._count._all));
 
-  const topProductIds = topItems.map((t) => t.productId);
-  const topProducts = await prisma.product.findMany({ where: { id: { in: topProductIds } } });
+  const topVariantIds = topItems.map((t) => t.variantId);
+  const topVariants = await prisma.productVariant.findMany({
+    where: { id: { in: topVariantIds } },
+    include: { product: true },
+  });
   const topProductsWithQty = topItems.map((t) => ({
-    product: topProducts.find((p) => p.id === t.productId),
+    variant: topVariants.find((v) => v.id === t.variantId),
     quantity: t._sum.quantity ?? 0,
   }));
 
@@ -169,9 +172,11 @@ export default async function DashboardOverviewPage() {
               <ul className="space-y-3">
                 {topProductsWithQty.map(
                   (t) =>
-                    t.product && (
-                      <li key={t.product.id} className="flex items-center justify-between text-sm">
-                        <span className="line-clamp-1 pr-2 text-brand-navy/80">{t.product.name}</span>
+                    t.variant && (
+                      <li key={t.variant.id} className="flex items-center justify-between text-sm">
+                        <span className="line-clamp-1 pr-2 text-brand-navy/80">
+                          {t.variant.product.name} ({t.variant.colorName})
+                        </span>
                         <span className="shrink-0 font-semibold text-brand-navy">{t.quantity} vendus</span>
                       </li>
                     )

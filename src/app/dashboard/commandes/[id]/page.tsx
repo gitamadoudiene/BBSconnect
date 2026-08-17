@@ -10,7 +10,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: { include: { product: true } } },
+    include: { items: { include: { variant: { include: { product: true } } } } },
   });
 
   if (!order) notFound();
@@ -38,12 +38,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center gap-4">
                 <div className="h-14 w-9 shrink-0 rounded bg-brand-gray p-1.5">
-                  <PhoneMock color={item.product.color} variant="back" />
+                  <PhoneMock color={item.variant.colorHex} variant="back" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="line-clamp-1 text-sm font-medium text-brand-navy">{item.product.name}</p>
+                  <p className="line-clamp-1 text-sm font-medium text-brand-navy">{item.variant.product.name}</p>
                   <p className="text-xs text-brand-navy/50">
-                    {formatFCFA(item.price)} × {item.quantity}
+                    {[item.variant.colorName, item.variant.storage].filter(Boolean).join(" · ")} · {formatFCFA(item.price)} × {item.quantity}
                   </p>
                 </div>
                 <p className="font-semibold text-brand-navy">{formatFCFA(item.price * item.quantity)}</p>

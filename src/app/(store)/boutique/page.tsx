@@ -2,6 +2,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { productWithVariantsInclude, toProductCardData, fromPrice } from "@/lib/catalog";
 import { ProductCard } from "@/components/store/ProductCard";
 import { SortSelect } from "@/components/store/SortSelect";
 
@@ -21,18 +22,21 @@ export default async function BoutiquePage({ searchParams }: { searchParams: Sea
   const where: Prisma.ProductWhereInput = {};
   if (params.categorie) where.category = { slug: params.categorie };
   if (params.q) where.name = { contains: params.q };
-  if (params.deals) where.compareAtPrice = { not: null };
+  if (params.deals) where.variants = { some: { compareAtPrice: { not: null } } };
 
-  let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
-  if (params.tri === "price-asc") orderBy = { price: "asc" };
-  if (params.tri === "price-desc") orderBy = { price: "desc" };
-  if (params.tri === "new") orderBy = { createdAt: "desc" };
-
-  const products = await prisma.product.findMany({
+  const rawProducts = await prisma.product.findMany({
     where,
-    orderBy,
-    include: { category: true },
+    orderBy: { createdAt: "desc" },
+    include: productWithVariantsInclude,
   });
+
+  const products = rawProducts
+    .map((p) => ({ product: p, card: toProductCardData(p), price: fromPrice(p) }))
+    .sort((a, b) => {
+      if (params.tri === "price-asc") return a.price - b.price;
+      if (params.tri === "price-desc") return b.price - a.price;
+      return 0;
+    });
 
   const activeCategory = categories.find((c) => c.slug === params.categorie);
 
@@ -109,21 +113,8 @@ export default async function BoutiquePage({ searchParams }: { searchParams: Sea
           </div>
         ) : (
           <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-14 lg:grid-cols-3 lg:gap-x-10 xl:grid-cols-4">
-            {products.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={{
-                  id: p.id,
-                  name: p.name,
-                  slug: p.slug,
-                  price: p.price,
-                  compareAtPrice: p.compareAtPrice,
-                  color: p.color,
-                  storage: p.storage,
-                  stock: p.stock,
-                  categoryName: p.category.name,
-                }}
-              />
+            {products.map(({ product, card }) => (
+              <ProductCard key={product.id} product={card} />
             ))}
           </div>
         )}
