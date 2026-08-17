@@ -5,6 +5,7 @@ import { productWithVariantsInclude, toProductCardData } from "@/lib/catalog";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { Hero } from "@/components/marketing/Hero";
+import { ShopByConditionSection } from "@/components/marketing/ShopByConditionSection";
 import { TrustBar } from "@/components/marketing/TrustBar";
 import { CollectionsSection } from "@/components/marketing/CollectionsSection";
 import { ProBanner } from "@/components/marketing/ProBanner";
@@ -29,6 +30,7 @@ export default async function HomePage() {
   return (
     <div>
       <Hero />
+      <ShopByConditionSection />
       <TrustBar />
       <CollectionsSection />
 

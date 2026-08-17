@@ -15,7 +15,8 @@ export const images = {
   ],
   collectionPro: pexels("9995703"), // hand holding phone, dark background
   collectionClassic: pexels("29020349"), // phone on light wooden table
-  collectionLifestyle: pexels("5357612"), // woman using smartphone outdoors
+  sealedBox: pexels("13570158"), // iPhone box against dark backdrop, elegant packaging
+  refurbished: pexels("7214316"), // phone with blank screen, minimal neutral background
   proBanner: pexels("16004978", 2000), // iPhone 14 Pro, Dynamic Island, accessories
   whyUsLifestyle: pexels("839443"), // workspace: laptop, smartphone, fresh roses
   needPhotography: pexels("12794487"), // close-up of smartphone camera lenses

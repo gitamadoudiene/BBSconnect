@@ -23,7 +23,7 @@ const collections = [
     badge: null,
     title: "Bonnes affaires",
     href: "/boutique?deals=1",
-    image: images.collectionLifestyle,
+    image: "/bonaff.jpg",
     dark: true,
   },
 ];
