@@ -1,5 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
+/** Only PUBLISHED products should ever reach the storefront — draft/archived
+ * products stay visible in the dashboard only. */
+export const publishedFilter: Prisma.ProductWhereInput = { status: "PUBLISHED" };
+
 export const productWithVariantsInclude = {
   category: true,
   variants: {

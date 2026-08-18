@@ -12,8 +12,7 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-brand-navy">Paramètres du compte</h1>
-      <div className="max-w-lg rounded-lg border border-brand-border bg-white p-6">
+      <div className="max-w-lg rounded-xl border border-db-border bg-db-card p-6">
         <SettingsForm name={user.name} email={user.email} phone={user.phone ?? ""} />
       </div>
     </div>

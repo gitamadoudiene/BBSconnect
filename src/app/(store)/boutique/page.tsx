@@ -2,7 +2,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { productWithVariantsInclude, toProductCardData, fromPrice } from "@/lib/catalog";
+import { productWithVariantsInclude, publishedFilter, toProductCardData, fromPrice } from "@/lib/catalog";
 import { ProductCard } from "@/components/store/ProductCard";
 import { SortSelect } from "@/components/store/SortSelect";
 
@@ -19,7 +19,7 @@ export default async function BoutiquePage({ searchParams }: { searchParams: Sea
   const params = await searchParams;
   const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
 
-  const where: Prisma.ProductWhereInput = {};
+  const where: Prisma.ProductWhereInput = { ...publishedFilter };
   if (params.categorie) where.category = { slug: params.categorie };
   if (params.q) where.name = { contains: params.q };
   if (params.deals) where.variants = { some: { compareAtPrice: { not: null } } };

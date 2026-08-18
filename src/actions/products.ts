@@ -15,6 +15,11 @@ async function requireMerchant() {
   return session;
 }
 
+const variantImageSchema = z.object({
+  url: z.string().min(1),
+  isPrimary: z.boolean(),
+});
+
 const variantSchema = z.object({
   id: z.string().optional(),
   sku: z.string().min(1, "SKU requis"),
@@ -24,7 +29,7 @@ const variantSchema = z.object({
   price: z.coerce.number().int().min(0),
   compareAtPrice: z.coerce.number().int().min(0).nullable().optional(),
   stock: z.coerce.number().int().min(0),
-  images: z.array(z.string().min(1)).min(1, "Au moins une image par variante"),
+  images: z.array(variantImageSchema).min(1, "Au moins une image par variante"),
 });
 
 const productSchema = z.object({
@@ -33,6 +38,11 @@ const productSchema = z.object({
   description: z.string().min(1, "La description est requise"),
   specs: z.string().min(1, "Les caractéristiques sont requises"),
   featured: z.coerce.boolean().optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).default("PUBLISHED"),
+  tags: z.string().optional(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  slug: z.string().optional(),
   variants: z.array(variantSchema).min(1, "Au moins une variante est requise"),
 });
 
@@ -52,8 +62,24 @@ function parseProductForm(formData: FormData) {
     description: formData.get("description"),
     specs: formData.get("specs"),
     featured: formData.get("featured") === "on",
+    status: formData.get("status") || undefined,
+    tags: formData.get("tags") || undefined,
+    seoTitle: formData.get("seoTitle") || undefined,
+    seoDescription: formData.get("seoDescription") || undefined,
+    slug: formData.get("slug") || undefined,
     variants,
   });
+}
+
+async function uniqueSlug(base: string, ignoreId?: string) {
+  const baseSlug = slugify(base);
+  let slug = baseSlug || "produit";
+  let counter = 1;
+  while (true) {
+    const existing = await prisma.product.findUnique({ where: { slug } });
+    if (!existing || existing.id === ignoreId) return slug;
+    slug = `${baseSlug}-${counter++}`;
+  }
 }
 
 export async function createProductAction(
@@ -73,12 +99,7 @@ export async function createProductAction(
     return { error: `Le SKU "${existingSkus[0].sku}" est déjà utilisé` };
   }
 
-  const baseSlug = slugify(parsed.data.name);
-  let slug = baseSlug;
-  let counter = 1;
-  while (await prisma.product.findUnique({ where: { slug } })) {
-    slug = `${baseSlug}-${counter++}`;
-  }
+  const slug = await uniqueSlug(parsed.data.slug || parsed.data.name);
 
   await prisma.product.create({
     data: {
@@ -88,6 +109,10 @@ export async function createProductAction(
       description: parsed.data.description,
       specs: parsed.data.specs,
       featured: parsed.data.featured ?? false,
+      status: parsed.data.status,
+      tags: parsed.data.tags || null,
+      seoTitle: parsed.data.seoTitle || null,
+      seoDescription: parsed.data.seoDescription || null,
       variants: {
         create: parsed.data.variants.map((v, i) => ({
           sku: v.sku,
@@ -99,9 +124,9 @@ export async function createProductAction(
           stock: v.stock,
           position: i,
           images: {
-            create: v.images.map((url, imgIndex) => ({
-              url,
-              type: imgIndex === 0 ? "PRIMARY" : "GALLERY",
+            create: v.images.map((img, imgIndex) => ({
+              url: img.url,
+              type: img.isPrimary ? ("PRIMARY" as const) : ("GALLERY" as const),
               position: imgIndex,
             })),
           },
@@ -111,8 +136,9 @@ export async function createProductAction(
   });
 
   revalidatePath("/dashboard/produits");
+  revalidatePath("/dashboard");
   revalidatePath("/boutique");
-  redirect("/dashboard/produits");
+  redirect("/dashboard/produits?created=1");
 }
 
 export async function updateProductAction(
@@ -149,15 +175,25 @@ export async function updateProductAction(
     }
   }
 
+  const currentProduct = await prisma.product.findUnique({ where: { id: productId } });
+  const slug = parsed.data.slug
+    ? await uniqueSlug(parsed.data.slug, productId)
+    : currentProduct?.slug ?? (await uniqueSlug(parsed.data.name, productId));
+
   await prisma.$transaction(async (tx) => {
     await tx.product.update({
       where: { id: productId },
       data: {
         name: parsed.data.name,
+        slug,
         categoryId: parsed.data.categoryId,
         description: parsed.data.description,
         specs: parsed.data.specs,
         featured: parsed.data.featured ?? false,
+        status: parsed.data.status,
+        tags: parsed.data.tags || null,
+        seoTitle: parsed.data.seoTitle || null,
+        seoDescription: parsed.data.seoDescription || null,
       },
     });
 
@@ -199,9 +235,9 @@ export async function updateProductAction(
 
       await tx.productImage.deleteMany({ where: { variantId: variant.id } });
       await tx.productImage.createMany({
-        data: v.images.map((url, imgIndex) => ({
-          url,
-          type: imgIndex === 0 ? ("PRIMARY" as const) : ("GALLERY" as const),
+        data: v.images.map((img, imgIndex) => ({
+          url: img.url,
+          type: img.isPrimary ? ("PRIMARY" as const) : ("GALLERY" as const),
           position: imgIndex,
           variantId: variant.id,
         })),
@@ -210,8 +246,61 @@ export async function updateProductAction(
   });
 
   revalidatePath("/dashboard/produits");
+  revalidatePath("/dashboard");
   revalidatePath("/boutique");
-  redirect("/dashboard/produits");
+  revalidatePath(`/boutique/${slug}`);
+  redirect("/dashboard/produits?updated=1");
+}
+
+export async function duplicateProductAction(productId: string) {
+  await requireMerchant();
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { variants: { include: { images: true } } },
+  });
+  if (!product) redirect("/dashboard/produits");
+
+  const slug = await uniqueSlug(`${product.name}-copie`);
+
+  await prisma.product.create({
+    data: {
+      name: `${product.name} (copie)`,
+      slug,
+      categoryId: product.categoryId,
+      description: product.description,
+      specs: product.specs,
+      featured: false,
+      status: "DRAFT",
+      tags: product.tags,
+      variants: {
+        create: product.variants.map((v, i) => ({
+          sku: `${v.sku}-COPY-${Date.now()}${i}`,
+          colorName: v.colorName,
+          colorHex: v.colorHex,
+          storage: v.storage,
+          price: v.price,
+          compareAtPrice: v.compareAtPrice,
+          stock: 0,
+          position: i,
+          images: {
+            create: v.images.map((img) => ({ url: img.url, type: img.type, position: img.position })),
+          },
+        })),
+      },
+    },
+  });
+
+  revalidatePath("/dashboard/produits");
+  redirect("/dashboard/produits?duplicated=1");
+}
+
+export async function archiveProductAction(productId: string) {
+  await requireMerchant();
+  await prisma.product.update({ where: { id: productId }, data: { status: "ARCHIVED" } });
+  revalidatePath("/dashboard/produits");
+  revalidatePath("/boutique");
+  redirect("/dashboard/produits?archived=1");
 }
 
 export async function deleteProductAction(productId: string) {

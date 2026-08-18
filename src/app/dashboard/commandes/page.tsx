@@ -1,5 +1,6 @@
 import Link from "next/link";
 import clsx from "clsx";
+import { ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatFCFA } from "@/lib/format";
 import type { OrderStatus } from "@prisma/client";
@@ -38,17 +39,14 @@ export default async function DashboardOrdersPage({ searchParams }: { searchPara
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brand-navy">Commandes</h1>
-        <p className="text-sm text-brand-navy/60">{orders.length} commande(s)</p>
-      </div>
+      <p className="mb-4 text-[13px] text-db-muted">{orders.length} commande{orders.length > 1 ? "s" : ""}</p>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-1.5">
         <Link
           href="/dashboard/commandes"
           className={clsx(
-            "rounded-full border px-3 py-1.5 text-xs font-semibold",
-            !status ? "border-brand-blue bg-brand-blue-light text-brand-blue" : "border-brand-border text-brand-navy/60"
+            "rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition",
+            !status ? "bg-ink text-white" : "text-db-muted hover:bg-db-bg"
           )}
         >
           Toutes
@@ -58,8 +56,8 @@ export default async function DashboardOrdersPage({ searchParams }: { searchPara
             key={value}
             href={`/dashboard/commandes?status=${value}`}
             className={clsx(
-              "rounded-full border px-3 py-1.5 text-xs font-semibold",
-              status === value ? "border-brand-blue bg-brand-blue-light text-brand-blue" : "border-brand-border text-brand-navy/60"
+              "rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition",
+              status === value ? "bg-ink text-white" : "text-db-muted hover:bg-db-bg"
             )}
           >
             {label}
@@ -67,44 +65,50 @@ export default async function DashboardOrdersPage({ searchParams }: { searchPara
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-brand-border bg-white">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-brand-border bg-brand-gray text-left text-xs uppercase text-brand-navy/50">
-              <th className="p-3">Référence</th>
-              <th className="p-3">Client</th>
-              <th className="p-3">Articles</th>
-              <th className="p-3">Statut</th>
-              <th className="p-3">Date</th>
-              <th className="p-3 text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => (
-              <tr key={o.id} className="border-b border-brand-border/60 last:border-0">
-                <td className="p-3">
-                  <Link href={`/dashboard/commandes/${o.id}`} className="font-medium text-brand-blue hover:underline">
-                    {o.reference}
-                  </Link>
-                </td>
-                <td className="p-3">
-                  <p className="text-brand-navy">{o.customerName}</p>
-                  <p className="text-xs text-brand-navy/50">{o.customerEmail}</p>
-                </td>
-                <td className="p-3 text-brand-navy/70">{o.items.length}</td>
-                <td className="p-3">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColors[o.status]}`}>
-                    {statusLabels[o.status]}
-                  </span>
-                </td>
-                <td className="p-3 text-brand-navy/60">{new Date(o.createdAt).toLocaleDateString("fr-FR")}</td>
-                <td className="p-3 text-right font-semibold text-brand-navy">{formatFCFA(o.total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {orders.length === 0 && (
-          <p className="p-8 text-center text-sm text-brand-navy/50">Aucune commande trouvée.</p>
+      <div className="overflow-hidden rounded-xl border border-db-border bg-db-card">
+        {orders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            <ShoppingBag className="mb-3 h-9 w-9 text-db-muted" strokeWidth={1.5} />
+            <p className="text-[14px] font-medium text-db-text">Aucune commande {status ? "dans ce statut" : "pour le moment"}</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b border-db-border bg-db-bg text-left text-[11px] uppercase tracking-wide text-db-muted">
+                  <th className="p-3">Référence</th>
+                  <th className="p-3">Client</th>
+                  <th className="p-3">Articles</th>
+                  <th className="p-3">Statut</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((o) => (
+                  <tr key={o.id} className="border-b border-db-border/70 last:border-0 hover:bg-db-bg/50">
+                    <td className="p-3">
+                      <Link href={`/dashboard/commandes/${o.id}`} className="font-medium text-accent hover:underline">
+                        {o.reference}
+                      </Link>
+                    </td>
+                    <td className="p-3">
+                      <p className="text-db-text">{o.customerName}</p>
+                      <p className="text-[11.5px] text-db-muted">{o.customerEmail}</p>
+                    </td>
+                    <td className="p-3 text-db-muted">{o.items.length}</td>
+                    <td className="p-3">
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColors[o.status]}`}>
+                        {statusLabels[o.status]}
+                      </span>
+                    </td>
+                    <td className="p-3 text-[12px] text-db-muted">{new Date(o.createdAt).toLocaleDateString("fr-FR")}</td>
+                    <td className="p-3 text-right font-semibold text-db-text">{formatFCFA(o.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

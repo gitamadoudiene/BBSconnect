@@ -25,7 +25,7 @@ export function OrderStatusSelect({ orderId, status }: { orderId: string; status
           updateOrderStatusAction(orderId, e.target.value as OrderStatus);
         })
       }
-      className="rounded-md border border-brand-border px-3 py-2 text-sm font-medium text-brand-navy outline-none focus:border-brand-blue disabled:opacity-50"
+      className="rounded-lg border border-db-border px-3 py-2 text-[13px] font-medium text-db-text outline-none focus:border-accent disabled:opacity-50"
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>

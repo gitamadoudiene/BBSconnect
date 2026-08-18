@@ -2,13 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { productWithVariantsInclude, toProductCardData } from "@/lib/catalog";
+import { productWithVariantsInclude, publishedFilter, toProductCardData } from "@/lib/catalog";
 import { formatFCFA } from "@/lib/format";
 import { Reveal } from "@/components/ui/Reveal";
 
 export async function AccessoriesSection() {
   const accessories = await prisma.product.findMany({
-    where: { category: { slug: "accessoires" } },
+    where: { category: { slug: "accessoires" }, ...publishedFilter },
     orderBy: { featured: "desc" },
     include: productWithVariantsInclude,
     take: 4,

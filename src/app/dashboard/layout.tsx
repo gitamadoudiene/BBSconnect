@@ -8,5 +8,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/connexion?redirect=/dashboard");
   }
 
-  return <DashboardShell merchantName={session.name}>{children}</DashboardShell>;
+  return (
+    <DashboardShell merchantName={session.name} merchantEmail={session.email}>
+      {children}
+    </DashboardShell>
+  );
 }

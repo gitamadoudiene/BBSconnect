@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 enum Role {
@@ -26,6 +27,12 @@ enum ImageType {
   GALLERY
 }
 
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -40,9 +47,19 @@ model User {
 }
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  slug     String    @unique
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  image       String?
+  position    Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  parentId String?
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
   products Product[]
 }
 
@@ -55,7 +72,11 @@ model Product {
   brand       String   @default("Apple")
   description String
   specs       String
-  featured    Boolean  @default(false)
+  featured    Boolean       @default(false)
+  status      ProductStatus @default(PUBLISHED)
+  tags        String?
+  seoTitle    String?
+  seoDescription String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

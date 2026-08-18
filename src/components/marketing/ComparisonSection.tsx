@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { productWithVariantsInclude, fromPrice } from "@/lib/catalog";
+import { productWithVariantsInclude, publishedFilter, fromPrice } from "@/lib/catalog";
 import { formatFCFA } from "@/lib/format";
 import { Reveal } from "@/components/ui/Reveal";
 import { ArrowLink } from "@/components/ui/ArrowLink";
@@ -13,7 +13,7 @@ function specValue(specs: string, label: string) {
 export async function ComparisonSection() {
   const slugs = ["iphone-17", "iphone-air", "iphone-17-pro", "iphone-17-pro-max"];
   const products = await prisma.product.findMany({
-    where: { slug: { in: slugs } },
+    where: { slug: { in: slugs }, ...publishedFilter },
     include: productWithVariantsInclude,
   });
 

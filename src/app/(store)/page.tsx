@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { productWithVariantsInclude, toProductCardData } from "@/lib/catalog";
+import { productWithVariantsInclude, publishedFilter, toProductCardData } from "@/lib/catalog";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { Hero } from "@/components/marketing/Hero";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const featured = await prisma.product.findMany({
-    where: { featured: true },
+    where: { featured: true, ...publishedFilter },
     include: productWithVariantsInclude,
     orderBy: { createdAt: "desc" },
     take: 4,

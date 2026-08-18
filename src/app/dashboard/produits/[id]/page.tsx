@@ -17,7 +17,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         },
       },
     }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.category.findMany({ orderBy: { position: "asc" } }),
   ]);
 
   if (!product) notFound();
@@ -26,21 +26,27 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <Link href="/dashboard/produits" className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-brand-blue hover:underline">
+      <Link href="/dashboard/produits" className="mb-4 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
         <ArrowLeft className="h-4 w-4" /> Retour aux produits
       </Link>
-      <h1 className="mb-6 text-2xl font-bold text-brand-navy">Modifier {product.name}</h1>
+      <h1 className="mb-6 text-[20px] font-semibold text-db-text">Modifier {product.name}</h1>
 
       <ProductForm
         categories={categories}
         action={boundAction}
         submitLabel="Enregistrer les modifications"
+        productSlug={product.slug}
         defaultValues={{
           name: product.name,
+          slug: product.slug,
           categoryId: product.categoryId,
           description: product.description,
           specs: product.specs,
           featured: product.featured,
+          status: product.status,
+          tags: product.tags ?? undefined,
+          seoTitle: product.seoTitle ?? undefined,
+          seoDescription: product.seoDescription ?? undefined,
           variants: product.variants,
         }}
       />

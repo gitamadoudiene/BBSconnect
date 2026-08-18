@@ -31,6 +31,21 @@
   --brand-red: var(--sale);
   --brand-gray: var(--mist);
   --brand-border: var(--line);
+
+  /* Dashboard-only palette — a distinct SaaS admin surface, not the storefront's
+     editorial ink/paper look. Primary blue matches the storefront accent so the
+     brand stays consistent, but everything else is its own neutral system. */
+  --db-bg: #f6f7f9;
+  --db-card: #ffffff;
+  --db-border: #e5e7eb;
+  --db-text: #111827;
+  --db-muted: #6b7280;
+  --db-success: #16a34a;
+  --db-success-tint: #eefbf2;
+  --db-warning: #f59e0b;
+  --db-warning-tint: #fef8ec;
+  --db-danger: #dc2626;
+  --db-danger-tint: #fdecec;
 }
 
 @theme inline {
@@ -57,6 +72,18 @@
   --color-brand-red: var(--brand-red);
   --color-brand-gray: var(--brand-gray);
   --color-brand-border: var(--brand-border);
+
+  --color-db-bg: var(--db-bg);
+  --color-db-card: var(--db-card);
+  --color-db-border: var(--db-border);
+  --color-db-text: var(--db-text);
+  --color-db-muted: var(--db-muted);
+  --color-db-success: var(--db-success);
+  --color-db-success-tint: var(--db-success-tint);
+  --color-db-warning: var(--db-warning);
+  --color-db-warning-tint: var(--db-warning-tint);
+  --color-db-danger: var(--db-danger);
+  --color-db-danger-tint: var(--db-danger-tint);
 
   --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
@@ -298,6 +325,26 @@ body {
 
 .animate-gallery-in {
   animation: gallery-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float-y 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float {
+    animation: none;
+  }
 }
 
 .line-clamp-2 {

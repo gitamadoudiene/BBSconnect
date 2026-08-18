@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { productWithVariantsInclude, toProductCardData } from "@/lib/catalog";
+import { productWithVariantsInclude, publishedFilter, toProductCardData } from "@/lib/catalog";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductDetailView } from "@/components/store/ProductDetailView";
 import { Reveal } from "@/components/ui/Reveal";
@@ -14,15 +14,15 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await prisma.product.findUnique({
-    where: { slug },
+  const product = await prisma.product.findFirst({
+    where: { slug, ...publishedFilter },
     include: productWithVariantsInclude,
   });
 
   if (!product || product.variants.length === 0) notFound();
 
   const related = await prisma.product.findMany({
-    where: { categoryId: product.categoryId, id: { not: product.id } },
+    where: { categoryId: product.categoryId, id: { not: product.id }, ...publishedFilter },
     take: 4,
     include: productWithVariantsInclude,
   });
