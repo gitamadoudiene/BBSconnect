@@ -8,7 +8,7 @@ const collections = [
   {
     badge: "PRO",
     title: "iPhone Pro",
-    href: "/boutique?categorie=iphone-16",
+    href: "/boutique?categorie=iphone-17",
     image: images.collectionPro,
     dark: true,
   },
@@ -23,7 +23,7 @@ const collections = [
     badge: null,
     title: "Bonnes affaires",
     href: "/boutique?deals=1",
-    image: images.collectionLifestyle,
+    image: "/bonaff.jpg",
     dark: true,
   },
 ];
@@ -45,7 +45,7 @@ export function CollectionsSection() {
             <Reveal key={c.title} delay={i * 100}>
               <Link
                 href={c.href}
-                className="hover-zoom group relative block aspect-[16/13] overflow-hidden rounded-[28px] sm:aspect-[16/10] lg:aspect-[4/5]"
+                className="hover-zoom glass-sheen group relative block aspect-[16/13] overflow-hidden rounded-[28px] sm:aspect-[16/10] lg:aspect-[4/5]"
               >
                 <Image
                   src={c.image}
@@ -62,7 +62,7 @@ export function CollectionsSection() {
                   }
                 />
                 {c.badge && (
-                  <span className="absolute left-6 top-6 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold tracking-wide text-ink">
+                  <span className="glass absolute left-6 top-6 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide text-ink">
                     {c.badge}
                   </span>
                 )}

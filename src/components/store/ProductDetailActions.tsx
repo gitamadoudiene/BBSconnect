@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 import clsx from "clsx";
@@ -9,15 +9,29 @@ import { useWishlistStore } from "@/store/wishlist";
 
 type Props = {
   productId: string;
-  name: string;
-  slug: string;
+  variantId: string;
+  productName: string;
+  productSlug: string;
   price: number;
-  color: string;
+  colorName: string;
+  colorHex: string;
   storage?: string | null;
   stock: number;
+  image?: string;
 };
 
-export function ProductDetailActions({ productId, name, slug, price, color, storage, stock }: Props) {
+export function ProductDetailActions({
+  productId,
+  variantId,
+  productName,
+  productSlug,
+  price,
+  colorName,
+  colorHex,
+  storage,
+  stock,
+  image,
+}: Props) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const router = useRouter();
@@ -25,14 +39,16 @@ export function ProductDetailActions({ productId, name, slug, price, color, stor
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const inWishlist = useWishlistStore((s) => s.has(productId));
 
+  useEffect(() => setQty(1), [variantId]);
+
   function handleAdd() {
-    addItem({ productId, name, slug, price, color, storage }, qty);
+    addItem({ variantId, productName, productSlug, price, colorName, colorHex, storage, image }, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   }
 
   function handleBuyNow() {
-    addItem({ productId, name, slug, price, color, storage }, qty);
+    addItem({ variantId, productName, productSlug, price, colorName, colorHex, storage, image }, qty);
     router.push("/panier");
   }
 

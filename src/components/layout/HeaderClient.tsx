@@ -88,7 +88,12 @@ export function HeaderClient({
       </div>
 
       {/* Level 2 — main navigation */}
-      <div className="border-b border-line">
+      <div
+        className={clsx(
+          "border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300",
+          scrolled ? "glass border-transparent" : "border-line bg-white"
+        )}
+      >
         <div
           className={clsx(
             "container-page flex items-center gap-8 transition-[height] duration-300",
@@ -119,12 +124,12 @@ export function HeaderClient({
                     <ChevronDown className="h-3.5 w-3.5 text-slate" />
                   </Link>
                   {iphoneOpen && (
-                    <div className="absolute left-1/2 top-full w-56 -translate-x-1/2 rounded-2xl border border-line bg-white p-2 card-shadow">
+                    <div className="glass absolute left-1/2 top-full w-56 -translate-x-1/2 rounded-2xl p-2">
                       {categories.map((cat) => (
                         <Link
                           key={cat.id}
                           href={`/boutique?categorie=${cat.slug}`}
-                          className="block rounded-lg px-3 py-2 text-sm text-ink hover:bg-mist"
+                          className="block rounded-lg px-3 py-2 text-sm text-ink transition hover:bg-white/70"
                         >
                           {cat.name}
                         </Link>
@@ -179,7 +184,7 @@ export function HeaderClient({
         </div>
 
         {searchOpen && (
-          <div className="border-t border-line bg-paper">
+          <div className="glass border-t-0">
             <form onSubmit={handleSearch} className="container-page flex items-center gap-3 py-4">
               <Search className="h-4 w-4 shrink-0 text-slate" />
               <input
@@ -199,7 +204,7 @@ export function HeaderClient({
       </div>
 
       {menuOpen && (
-        <div className="border-t border-line bg-white px-6 pb-6 md:hidden">
+        <div className="glass border-t-0 px-6 pb-6 md:hidden">
           <form onSubmit={handleSearch} className="mt-4 flex items-center gap-3 border-b border-line py-3">
             <Search className="h-4 w-4 shrink-0 text-slate" />
             <input

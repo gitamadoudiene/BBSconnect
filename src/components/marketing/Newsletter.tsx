@@ -24,7 +24,7 @@ export function Newsletter() {
               e.preventDefault();
               setSubmitted(true);
             }}
-            className="mt-8 flex w-full max-w-md items-center gap-2 rounded-full border border-line bg-white p-1.5 pl-5"
+            className="glass mt-8 flex w-full max-w-md items-center gap-2 rounded-full p-1.5 pl-5"
           >
             <input
               type="email"

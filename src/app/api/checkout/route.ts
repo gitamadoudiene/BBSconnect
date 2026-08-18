@@ -16,7 +16,7 @@ const checkoutSchema = z.object({
   items: z
     .array(
       z.object({
-        productId: z.string(),
+        variantId: z.string(),
         quantity: z.number().int().min(1),
       })
     )
@@ -36,27 +36,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Données invalides" }, { status: 400 });
   }
 
-  const products = await prisma.product.findMany({
-    where: { id: { in: parsed.data.items.map((i) => i.productId) } },
+  const variants = await prisma.productVariant.findMany({
+    where: { id: { in: parsed.data.items.map((i) => i.variantId) } },
+    include: { product: true },
   });
 
-  if (products.length !== parsed.data.items.length) {
+  if (variants.length !== parsed.data.items.length) {
     return NextResponse.json({ error: "Un produit n'existe plus" }, { status: 400 });
   }
 
   for (const item of parsed.data.items) {
-    const product = products.find((p) => p.id === item.productId)!;
-    if (product.stock < item.quantity) {
+    const variant = variants.find((v) => v.id === item.variantId)!;
+    if (variant.stock < item.quantity) {
       return NextResponse.json(
-        { error: `Stock insuffisant pour ${product.name}` },
+        { error: `Stock insuffisant pour ${variant.product.name}` },
         { status: 400 }
       );
     }
   }
 
   const subtotal = parsed.data.items.reduce((sum, item) => {
-    const product = products.find((p) => p.id === item.productId)!;
-    return sum + product.price * item.quantity;
+    const variant = variants.find((v) => v.id === item.variantId)!;
+    return sum + variant.price * item.quantity;
   }, 0);
   const total = subtotal + SHIPPING_FEE;
 
@@ -78,11 +79,11 @@ export async function POST(request: NextRequest) {
         userId: session?.userId,
         items: {
           create: parsed.data.items.map((item) => {
-            const product = products.find((p) => p.id === item.productId)!;
+            const variant = variants.find((v) => v.id === item.variantId)!;
             return {
-              productId: product.id,
+              variantId: variant.id,
               quantity: item.quantity,
-              price: product.price,
+              price: variant.price,
             };
           }),
         },
@@ -90,8 +91,8 @@ export async function POST(request: NextRequest) {
     });
 
     for (const item of parsed.data.items) {
-      await tx.product.update({
-        where: { id: item.productId },
+      await tx.productVariant.update({
+        where: { id: item.variantId },
         data: { stock: { decrement: item.quantity } },
       });
     }

@@ -24,21 +24,7 @@ export default function FavoritesPage() {
     setLoading(true);
     fetch(`/api/products?ids=${productIds.join(",")}`)
       .then((res) => res.json())
-      .then((data) => {
-        setProducts(
-          data.products.map((p: ProductCardData & { category: { name: string } }) => ({
-            id: p.id,
-            name: p.name,
-            slug: p.slug,
-            price: p.price,
-            compareAtPrice: p.compareAtPrice,
-            color: p.color,
-            storage: p.storage,
-            stock: p.stock,
-            categoryName: p.category.name,
-          }))
-        );
-      })
+      .then((data) => setProducts(data.products))
       .finally(() => setLoading(false));
   }, [mounted, productIds]);
 
@@ -47,15 +33,12 @@ export default function FavoritesPage() {
   if (products.length === 0) {
     return (
       <div className="container-page flex flex-col items-center justify-center py-24 text-center">
-        <Heart className="mb-4 h-14 w-14 text-brand-navy/20" />
-        <h1 className="text-xl font-bold text-brand-navy">Aucun favori pour le moment</h1>
-        <p className="mt-2 text-sm text-brand-navy/60">
+        <Heart className="mb-4 h-14 w-14 text-slate/40" strokeWidth={1.25} />
+        <h1 className="text-h3 text-ink">Aucun favori pour le moment</h1>
+        <p className="mt-2 text-sm text-slate">
           Cliquez sur le cœur d&apos;un produit pour l&apos;ajouter à votre liste d&apos;envies.
         </p>
-        <Link
-          href="/boutique"
-          className="mt-6 rounded-md bg-brand-blue px-6 py-3 text-sm font-semibold text-white hover:bg-brand-blue-dark"
-        >
+        <Link href="/boutique" className="btn btn-primary mt-6">
           Voir la boutique
         </Link>
       </div>
@@ -63,9 +46,9 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="container-page py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-navy">Ma liste d&apos;envies</h1>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+    <div className="container-page py-10 lg:py-14">
+      <h1 className="text-h1 mb-8 text-ink">Ma liste d&apos;envies</h1>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-14 lg:grid-cols-3 xl:grid-cols-4 lg:gap-x-10">
         {products.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}

@@ -14,46 +14,49 @@ export default async function OrderConfirmationPage({
   const { reference } = await params;
   const order = await prisma.order.findUnique({
     where: { reference },
-    include: { items: { include: { product: true } } },
+    include: { items: { include: { variant: { include: { product: true } } } } },
   });
 
   if (!order) notFound();
 
   return (
     <div className="container-page max-w-2xl py-16">
-      <div className="rounded-lg border border-brand-border p-8 text-center">
-        <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-emerald-500" />
-        <h1 className="text-2xl font-bold text-brand-navy">Commande confirmée !</h1>
-        <p className="mt-2 text-brand-navy/60">
+      <div className="rounded-2xl bg-paper p-8 text-center sm:p-12">
+        <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-emerald-500" strokeWidth={1.25} />
+        <h1 className="text-h2 text-ink">Commande confirmée !</h1>
+        <p className="mt-3 text-slate">
           Merci {order.customerName.split(" ")[0]}, votre commande{" "}
-          <span className="font-semibold text-brand-navy">{order.reference}</span> a bien été
+          <span className="font-semibold text-ink">{order.reference}</span> a bien été
           enregistrée. Nous vous contacterons au {order.customerPhone} pour la livraison.
         </p>
 
-        <div className="mt-8 rounded-lg bg-brand-gray p-6 text-left">
-          <ul className="space-y-2 text-sm">
+        <div className="mt-8 rounded-xl bg-white p-6 text-left">
+          <ul className="space-y-2.5 text-[14px]">
             {order.items.map((item) => (
-              <li key={item.id} className="flex justify-between text-brand-navy/80">
-                <span>{item.product.name} × {item.quantity}</span>
-                <span className="font-medium">{formatFCFA(item.price * item.quantity)}</span>
+              <li key={item.id} className="flex justify-between text-ink/80">
+                <span>
+                  {item.variant.product.name}
+                  <span className="text-slate">
+                    {" "}
+                    ({[item.variant.colorName, item.variant.storage].filter(Boolean).join(" · ")}) × {item.quantity}
+                  </span>
+                </span>
+                <span className="font-medium text-ink">{formatFCFA(item.price * item.quantity)}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-4 space-y-1 border-t border-brand-border pt-4 text-sm text-brand-navy/70">
-            <div className="flex justify-between"><span>Sous-total</span><span>{formatFCFA(order.subtotal)}</span></div>
-            <div className="flex justify-between"><span>Livraison</span><span>{formatFCFA(order.shippingFee)}</span></div>
-            <div className="flex justify-between text-base font-bold text-brand-navy"><span>Total</span><span>{formatFCFA(order.total)}</span></div>
+          <div className="mt-4 space-y-1.5 border-t border-line pt-4 text-[14px] text-slate">
+            <div className="flex justify-between"><span>Sous-total</span><span className="text-ink">{formatFCFA(order.subtotal)}</span></div>
+            <div className="flex justify-between"><span>Livraison</span><span className="text-ink">{formatFCFA(order.shippingFee)}</span></div>
+            <div className="flex justify-between text-[16px] font-semibold text-ink"><span>Total</span><span>{formatFCFA(order.total)}</span></div>
           </div>
-          <div className="mt-4 border-t border-brand-border pt-4 text-sm text-brand-navy/70">
-            <p><span className="font-medium text-brand-navy">Paiement : </span>{order.paymentMethod}</p>
-            <p><span className="font-medium text-brand-navy">Livraison : </span>{order.address}, {order.city}</p>
+          <div className="mt-4 border-t border-line pt-4 text-[13.5px] text-slate">
+            <p><span className="font-medium text-ink">Paiement : </span>{order.paymentMethod}</p>
+            <p><span className="font-medium text-ink">Livraison : </span>{order.address}, {order.city}</p>
           </div>
         </div>
 
-        <Link
-          href="/boutique"
-          className="mt-8 inline-block rounded-md bg-brand-blue px-6 py-3 text-sm font-semibold text-white hover:bg-brand-blue-dark"
-        >
+        <Link href="/boutique" className="btn btn-primary mt-8">
           Continuer mes achats
         </Link>
       </div>

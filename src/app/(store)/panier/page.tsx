@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { PhoneMock } from "@/components/ui/PhoneMock";
 import { formatFCFA } from "@/lib/format";
 import { useCartStore } from "@/store/cart";
 
@@ -23,15 +23,12 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="container-page flex flex-col items-center justify-center py-24 text-center">
-        <ShoppingBag className="mb-4 h-14 w-14 text-brand-navy/20" />
-        <h1 className="text-xl font-bold text-brand-navy">Votre panier est vide</h1>
-        <p className="mt-2 text-sm text-brand-navy/60">
+        <ShoppingBag className="mb-4 h-14 w-14 text-slate/40" strokeWidth={1.25} />
+        <h1 className="text-h3 text-ink">Votre panier est vide</h1>
+        <p className="mt-2 text-sm text-slate">
           Parcourez la boutique pour trouver l&apos;iPhone qu&apos;il vous faut.
         </p>
-        <Link
-          href="/boutique"
-          className="mt-6 rounded-md bg-brand-blue px-6 py-3 text-sm font-semibold text-white hover:bg-brand-blue-dark"
-        >
+        <Link href="/boutique" className="btn btn-primary mt-6">
           Voir la boutique
         </Link>
       </div>
@@ -41,86 +38,88 @@ export default function CartPage() {
   const total = subtotal + SHIPPING_FEE;
 
   return (
-    <div className="container-page py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-navy">Mon panier</h1>
+    <div className="container-page py-10 lg:py-14">
+      <h1 className="text-h1 mb-8 text-ink">Mon panier</h1>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-5">
           {items.map((item) => (
-            <div
-              key={item.productId}
-              className="flex items-center gap-4 rounded-lg border border-brand-border p-4"
-            >
-              <Link href={`/boutique/${item.slug}`} className="h-20 w-14 shrink-0 rounded bg-brand-gray p-2">
-                <PhoneMock color={item.color} variant="back" />
+            <div key={item.variantId} className="flex items-center gap-4 border-b border-line pb-5">
+              <Link
+                href={`/boutique/${item.productSlug}`}
+                className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-mist"
+              >
+                {item.image && (
+                  <Image src={item.image} alt={item.productName} fill sizes="80px" className="object-cover" />
+                )}
               </Link>
               <div className="min-w-0 flex-1">
-                <Link href={`/boutique/${item.slug}`} className="line-clamp-1 text-sm font-semibold text-brand-navy hover:text-brand-blue">
-                  {item.name}
+                <Link
+                  href={`/boutique/${item.productSlug}`}
+                  className="line-clamp-1 text-[15px] font-semibold text-ink hover:text-accent"
+                >
+                  {item.productName}
                 </Link>
-                {item.storage && <p className="text-xs text-brand-navy/50">{item.storage}</p>}
-                <p className="mt-1 text-sm font-bold text-brand-navy">{formatFCFA(item.price)}</p>
+                <p className="text-[13px] text-slate">
+                  {[item.colorName, item.storage].filter(Boolean).join(" · ")}
+                </p>
+                <p className="mt-1.5 text-[15px] font-semibold text-ink">{formatFCFA(item.price)}</p>
               </div>
 
-              <div className="flex items-center rounded-md border border-brand-border">
+              <div className="flex items-center rounded-full border border-line">
                 <button
-                  onClick={() => setQuantity(item.productId, item.quantity - 1)}
-                  className="flex h-9 w-9 items-center justify-center text-brand-navy hover:bg-brand-gray"
+                  onClick={() => setQuantity(item.variantId, item.quantity - 1)}
+                  className="flex h-9 w-9 items-center justify-center text-ink transition hover:bg-mist"
                   aria-label="Diminuer"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
-                <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                <span className="w-7 text-center text-sm font-semibold">{item.quantity}</span>
                 <button
-                  onClick={() => setQuantity(item.productId, item.quantity + 1)}
-                  className="flex h-9 w-9 items-center justify-center text-brand-navy hover:bg-brand-gray"
+                  onClick={() => setQuantity(item.variantId, item.quantity + 1)}
+                  className="flex h-9 w-9 items-center justify-center text-ink transition hover:bg-mist"
                   aria-label="Augmenter"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
               </div>
 
-              <p className="hidden w-28 text-right text-sm font-bold text-brand-navy sm:block">
+              <p className="hidden w-28 text-right text-[15px] font-semibold text-ink sm:block">
                 {formatFCFA(item.price * item.quantity)}
               </p>
 
               <button
-                onClick={() => removeItem(item.productId)}
+                onClick={() => removeItem(item.variantId)}
                 aria-label="Retirer"
-                className="text-brand-navy/40 hover:text-brand-red"
+                className="text-slate transition hover:text-sale"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
           ))}
 
-          <Link href="/boutique" className="inline-block text-sm font-semibold text-brand-blue hover:underline">
+          <Link href="/boutique" className="link-underline inline-block text-sm font-semibold text-ink">
             ← Continuer mes achats
           </Link>
         </div>
 
-        <div className="h-fit rounded-lg border border-brand-border bg-brand-gray p-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-brand-navy">
-            Récapitulatif
-          </h2>
-          <div className="space-y-2 text-sm text-brand-navy/70">
+        <div className="h-fit rounded-2xl bg-paper p-7">
+          <h2 className="text-eyebrow mb-5 text-slate">Récapitulatif</h2>
+          <div className="space-y-2.5 text-[14px] text-slate">
             <div className="flex justify-between">
               <span>Sous-total</span>
-              <span>{formatFCFA(subtotal)}</span>
+              <span className="text-ink">{formatFCFA(subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span>Livraison</span>
-              <span>{formatFCFA(SHIPPING_FEE)}</span>
+              <span className="text-ink">{formatFCFA(SHIPPING_FEE)}</span>
             </div>
           </div>
-          <div className="mt-4 flex justify-between border-t border-brand-border pt-4 text-base font-bold text-brand-navy">
+          <div className="mt-4 flex justify-between border-t border-line pt-4 text-[17px] font-semibold text-ink">
             <span>Total</span>
             <span>{formatFCFA(total)}</span>
           </div>
-          <Link
-            href="/checkout"
-            className="mt-6 block rounded-md bg-brand-navy py-3 text-center text-sm font-semibold text-white hover:bg-brand-blue"
-          >
+          <Link href="/checkout" className="btn btn-primary mt-6 w-full">
             Passer la commande
           </Link>
         </div>

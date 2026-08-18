@@ -1,5 +1,5 @@
 import { BadgeCheck, CreditCard, RefreshCcw, ShieldCheck, Truck } from "lucide-react";
-import { PhoneMock } from "@/components/ui/PhoneMock";
+import { AboutLogoMark } from "@/components/marketing/AboutLogoMark";
 
 const values = [
   { icon: Truck, title: "Livraison partout", text: "Nous livrons dans toutes les régions du Sénégal, rapidement et en toute sécurité." },
@@ -26,9 +26,7 @@ export default function AboutPage() {
               partout dans le pays.
             </p>
           </div>
-          <div className="mx-auto h-64 w-40">
-            <PhoneMock color="#2c3a4f" variant="front" />
-          </div>
+          <AboutLogoMark />
         </div>
       </section>
 

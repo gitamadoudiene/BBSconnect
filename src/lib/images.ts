@@ -15,7 +15,8 @@ export const images = {
   ],
   collectionPro: pexels("9995703"), // hand holding phone, dark background
   collectionClassic: pexels("29020349"), // phone on light wooden table
-  collectionLifestyle: pexels("5357612"), // woman using smartphone outdoors
+  sealedBox: pexels("13570158"), // iPhone box against dark backdrop, elegant packaging
+  refurbished: pexels("7214316"), // phone with blank screen, minimal neutral background
   proBanner: pexels("16004978", 2000), // iPhone 14 Pro, Dynamic Island, accessories
   whyUsLifestyle: pexels("839443"), // workspace: laptop, smartphone, fresh roses
   needPhotography: pexels("12794487"), // close-up of smartphone camera lenses
@@ -34,17 +35,3 @@ export const images = {
     pexels("6699512"), // man on phone near a tram, urban street
   ],
 } as const;
-
-const accessoryImagesBySkuPrefix: Record<string, string> = {
-  "ACC-EAR": images.accessoryAirpods,
-  "ACC-CHRG": images.accessoryCharger,
-  "ACC-CBL": images.accessoryCharger,
-  "ACC-CASE": images.accessoryCase,
-  "ACC-GLS": images.accessoryCase,
-  "ACC-PWR": images.accessoryCharger,
-};
-
-export function accessoryImage(sku: string) {
-  const prefix = Object.keys(accessoryImagesBySkuPrefix).find((p) => sku.startsWith(p));
-  return prefix ? accessoryImagesBySkuPrefix[prefix] : images.accessoryCase;
-}
