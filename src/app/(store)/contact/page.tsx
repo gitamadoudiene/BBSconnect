@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -26,14 +26,36 @@ export default function ContactPage() {
             <Phone className="h-5 w-5 shrink-0 text-brand-blue" />
             <div>
               <p className="font-semibold text-brand-navy">Téléphone</p>
-              <p className="text-sm text-brand-navy/60">+221 77 000 00 00</p>
+              <p className="text-sm text-brand-navy/60">
+                <a href="tel:+221788379919" className="hover:text-brand-blue">78 837 99 19</a>
+                {" "}/{" "}
+                <a href="tel:+221754596830" className="hover:text-brand-blue">75 459 68 30</a>
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Mail className="h-5 w-5 shrink-0 text-brand-blue" />
             <div>
               <p className="font-semibold text-brand-navy">Email</p>
-              <p className="text-sm text-brand-navy/60">contact@bbsconnect.sn</p>
+              <p className="text-sm text-brand-navy/60">
+                <a href="mailto:ballabusinessservice@gmail.com" className="hover:text-brand-blue">
+                  ballabusinessservice@gmail.com
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <MessageCircle className="h-5 w-5 shrink-0 text-brand-blue" />
+            <div>
+              <p className="font-semibold text-brand-navy">WhatsApp</p>
+              <a
+                href="https://wa.me/221788379919"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-brand-navy/60 hover:text-brand-blue"
+              >
+                78 837 99 19
+              </a>
             </div>
           </div>
         </div>

@@ -72,6 +72,9 @@ export function HeaderClient({
         <div className="container-page flex h-9 items-center justify-between text-[12px] text-white/80">
           <p className="hidden sm:block">Livraison rapide à Dakar et partout au Sénégal</p>
           <div className="flex w-full items-center justify-between gap-5 sm:w-auto sm:justify-end">
+            <a href="tel:+221788379919" className="link-underline hidden hover:text-white md:block">
+              78 837 99 19
+            </a>
             <Link href="/compte" className="link-underline hover:text-white">
               Suivre ma commande
             </Link>

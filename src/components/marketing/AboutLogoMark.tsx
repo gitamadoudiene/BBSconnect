@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 
@@ -27,19 +28,14 @@ export function AboutLogoMark() {
         className="absolute inset-0"
       >
         <div className="glass glass-sheen h-full w-full rounded-[32px]">
-          <div className={clsx("flex h-full w-full flex-col items-center justify-center", !reduceMotion && "animate-float")}>
-            <span className="text-[44px] font-extrabold leading-none tracking-tight text-ink select-none">
-              BBS<span className="text-accent">.</span>
-            </span>
-            <motion.span
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.6, delay: 0.4, ease: easeOut }}
-              className="mt-2 h-px w-16 origin-center bg-accent"
+          <div className={clsx("flex h-full w-full flex-col items-center justify-center px-8", !reduceMotion && "animate-float")}>
+            <Image
+              src="/images/logobbs.jpeg"
+              alt="Balla Business Service"
+              width={619}
+              height={246}
+              className="w-full max-w-[220px] object-contain select-none"
             />
-            <span className="mt-2 text-[11px] font-semibold tracking-[0.5em] text-accent select-none">
-              CONNECT
-            </span>
           </div>
         </div>
       </motion.div>
