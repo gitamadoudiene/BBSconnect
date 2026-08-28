@@ -20,7 +20,13 @@ export function Footer() {
               <a href="#" aria-label="Facebook" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 transition hover:border-white/40">
                 <MessageCircle className="h-4 w-4" />
               </a>
-              <a href="#" aria-label="WhatsApp" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 transition hover:border-white/40">
+              <a
+                href="https://wa.me/221788379919"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 transition hover:border-white/40"
+              >
                 <Phone className="h-4 w-4" />
               </a>
             </div>
@@ -61,7 +67,8 @@ export function Footer() {
           <p>© {new Date().getFullYear()} BBS Connect. Tous droits réservés.</p>
           <div className="flex flex-wrap items-center gap-5">
             <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Dakar, Sénégal</span>
-            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> contact@bbsconnect.sn</span>
+            <a href="tel:+221788379919" className="flex items-center gap-1.5 hover:text-white/70"><Phone className="h-3.5 w-3.5" /> 78 837 99 19 / 75 459 68 30</a>
+            <a href="mailto:ballabusinessservice@gmail.com" className="flex items-center gap-1.5 hover:text-white/70"><Mail className="h-3.5 w-3.5" /> ballabusinessservice@gmail.com</a>
           </div>
         </div>
       </div>

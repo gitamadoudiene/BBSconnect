@@ -2,6 +2,7 @@ import { MotionConfig } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
+      <WhatsAppButton />
     </MotionConfig>
   );
 }
