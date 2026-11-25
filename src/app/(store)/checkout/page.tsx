@@ -65,40 +65,40 @@ export default function CheckoutPage() {
 
   return (
     <div className="container-page py-8">
-      <h1 className="mb-6 text-2xl font-bold text-brand-navy">Finaliser la commande</h1>
+      <h1 className="text-h1 mb-8 text-ink">Finaliser la commande</h1>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="rounded-lg border border-brand-border p-6">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-brand-navy">
+          <div className="card p-6">
+            <h2 className="text-eyebrow mb-4 text-slate">
               Informations de livraison
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-brand-navy">Nom complet</label>
-                <input name="customerName" required className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue" />
+                <label className="field-label">Nom complet</label>
+                <input name="customerName" required className="field" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-brand-navy">Email</label>
-                <input type="email" name="customerEmail" required className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue" />
+                <label className="field-label">Email</label>
+                <input type="email" name="customerEmail" required className="field" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-brand-navy">Téléphone</label>
-                <input type="tel" name="customerPhone" required placeholder="+221 77 000 00 00" className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue" />
+                <label className="field-label">Téléphone</label>
+                <input type="tel" name="customerPhone" required placeholder="+221 77 000 00 00" className="field" />
               </div>
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-brand-navy">Adresse</label>
-                <input name="address" required className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue" />
+                <label className="field-label">Adresse</label>
+                <input name="address" required className="field" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-brand-navy">Ville</label>
-                <input name="city" required defaultValue="Dakar" className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue" />
+                <label className="field-label">Ville</label>
+                <input name="city" required defaultValue="Dakar" className="field" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-brand-border p-6">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-brand-navy">
+          <div className="card p-6">
+            <h2 className="text-eyebrow mb-4 text-slate">
               Mode de paiement
             </h2>
             <div className="space-y-2">
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
               ].map((opt) => (
                 <label
                   key={opt.value}
-                  className="flex cursor-pointer items-center gap-3 rounded-md border border-brand-border px-4 py-3 text-sm has-[:checked]:border-brand-blue has-[:checked]:bg-brand-blue-light"
+                  className="flex cursor-pointer items-center gap-3 rounded-[14px] border border-line-strong px-4 py-3.5 text-[14.5px] transition-colors has-[:checked]:border-ink has-[:checked]:bg-paper"
                 >
                   <input
                     type="radio"
@@ -117,29 +117,29 @@ export default function CheckoutPage() {
                     value={opt.value}
                     checked={payment === opt.value}
                     onChange={() => setPayment(opt.value as typeof payment)}
-                    className="accent-brand-blue"
+                    className="accent-[#0077a6]"
                   />
                   {opt.label}
                 </label>
               ))}
             </div>
-            <p className="mt-3 text-xs text-brand-navy/50">
+            <p className="mt-3 text-xs text-slate">
               Simulation de paiement à des fins de démonstration — aucune transaction réelle n&apos;est effectuée.
             </p>
           </div>
         </div>
 
-        <div className="h-fit space-y-4 rounded-lg border border-brand-border bg-brand-gray p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-navy">Résumé</h2>
+        <div className="card-paper h-fit space-y-4 p-6">
+          <h2 className="text-eyebrow text-slate">Résumé</h2>
           <ul className="space-y-2 text-sm">
             {items.map((item) => (
-              <li key={item.variantId} className="flex justify-between text-brand-navy/80">
+              <li key={item.variantId} className="flex justify-between text-ink-soft">
                 <span className="line-clamp-1 pr-2">{item.productName} × {item.quantity}</span>
                 <span className="shrink-0 font-medium">{formatFCFA(item.price * item.quantity)}</span>
               </li>
             ))}
           </ul>
-          <div className="space-y-2 border-t border-brand-border pt-4 text-sm text-brand-navy/70">
+          <div className="space-y-2 border-t border-line pt-4 text-sm text-ink-soft">
             <div className="flex justify-between">
               <span>Sous-total</span>
               <span>{formatFCFA(subtotal)}</span>
@@ -149,21 +149,21 @@ export default function CheckoutPage() {
               <span>{formatFCFA(SHIPPING_FEE)}</span>
             </div>
           </div>
-          <div className="flex justify-between border-t border-brand-border pt-4 text-base font-bold text-brand-navy">
+          <div className="tabular flex justify-between border-t border-ink pt-4 text-[17px] font-bold text-ink">
             <span>Total</span>
             <span>{formatFCFA(total)}</span>
           </div>
 
-          {error && <p className="text-sm font-medium text-brand-red">{error}</p>}
+          {error && <p className="text-sm font-medium text-signal-deep">{error}</p>}
 
           <button
             type="submit"
             disabled={submitting}
-            className="block w-full rounded-md bg-brand-navy py-3 text-center text-sm font-semibold text-white hover:bg-brand-blue disabled:opacity-60"
+            className="btn btn-accent w-full"
           >
             {submitting ? "Traitement..." : "Confirmer la commande"}
           </button>
-          <Link href="/panier" className="block text-center text-xs font-semibold text-brand-blue hover:underline">
+          <Link href="/panier" className="block text-center text-xs font-semibold text-accent hover:underline">
             ← Retour au panier
           </Link>
         </div>

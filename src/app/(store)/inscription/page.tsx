@@ -10,63 +10,63 @@ export default function RegisterPage() {
   return (
     <div className="container-page flex min-h-[70vh] items-center justify-center py-16">
       <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-bold text-brand-navy">Créer un compte</h1>
-        <p className="mb-6 text-sm text-brand-navy/60">
+        <h1 className="text-h2 mb-2 text-ink">Créer un compte</h1>
+        <p className="mb-8 text-[15px] text-slate">
           Rejoignez BBSconnect pour suivre vos commandes.
         </p>
 
         <form action={formAction} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-brand-navy">Nom complet</label>
+            <label className="field-label">Nom complet</label>
             <input
               name="name"
               required
-              className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue"
+              className="field"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-brand-navy">Email</label>
+            <label className="field-label">Email</label>
             <input
               type="email"
               name="email"
               required
-              className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue"
+              className="field"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-brand-navy">Téléphone (optionnel)</label>
+            <label className="field-label">Téléphone (optionnel)</label>
             <input
               type="tel"
               name="phone"
               placeholder="+221 77 000 00 00"
-              className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue"
+              className="field"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-brand-navy">Mot de passe</label>
+            <label className="field-label">Mot de passe</label>
             <input
               type="password"
               name="password"
               required
               minLength={6}
-              className="w-full rounded-md border border-brand-border px-3 py-2 text-sm outline-none focus:border-brand-blue"
+              className="field"
             />
           </div>
 
-          {state?.error && <p className="text-sm font-medium text-brand-red">{state.error}</p>}
+          {state?.error && <p className="text-sm font-medium text-signal-deep">{state.error}</p>}
 
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-md bg-brand-navy py-3 text-sm font-semibold text-white hover:bg-brand-blue disabled:opacity-60"
+            className="btn btn-primary w-full"
           >
             {pending ? "Création..." : "Créer mon compte"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-brand-navy/60">
+        <p className="mt-6 text-center text-[14px] text-slate">
           Déjà un compte ?{" "}
-          <Link href="/connexion" className="font-semibold text-brand-blue hover:underline">
+          <Link href="/connexion" className="font-semibold text-accent link-underline">
             Se connecter
           </Link>
         </p>

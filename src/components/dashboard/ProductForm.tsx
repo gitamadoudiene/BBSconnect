@@ -215,7 +215,7 @@ export function ProductForm({
                 className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
               />
               <datalist id="brand-options">
-                {["Apple", "Samsung", "Google", "Sony", "DJI", "Nintendo", "Xiaomi", "JBL", "Anker"].map((b) => (
+                {["Apple", "Samsung", "Google", "Xiaomi", "BBS Connect", "Anker", "Belkin"].map((b) => (
                   <option key={b} value={b} />
                 ))}
               </datalist>

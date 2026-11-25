@@ -1,25 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { HeaderClient } from "./HeaderClient";
+import { HeaderClient, type NavSeries } from "./HeaderClient";
 
 export async function Header() {
-  const [categories, session] = await Promise.all([
+  const [series, session] = await Promise.all([
     prisma.category.findMany({
-      where: { parentId: null, active: true },
+      where: { active: true, parent: { slug: "smartphones" } },
       orderBy: { position: "asc" },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        children: {
-          where: { active: true },
-          orderBy: { position: "asc" },
-          select: { id: true, name: true, slug: true },
-        },
-      },
+      select: { name: true, slug: true },
     }),
     getSession(),
   ]);
 
-  return <HeaderClient categories={categories} session={session} />;
+  return <HeaderClient series={series as NavSeries[]} session={session} />;
 }

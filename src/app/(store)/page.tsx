@@ -1,95 +1,151 @@
 import { prisma } from "@/lib/prisma";
-import { fromPrice, productWithVariantsInclude, publishedFilter, toProductCardData } from "@/lib/catalog";
+import { BUDGETS, fromPrice, productWithVariantsInclude, storefrontFilter, toProductCardData } from "@/lib/catalog";
 import type { ProductWithVariants } from "@/lib/catalog";
-import { Hero, type HeroSpot } from "@/components/marketing/Hero";
-import { UniverseBento } from "@/components/marketing/UniverseBento";
-import { ProductShowcase } from "@/components/marketing/ProductShowcase";
-import { GalaxySpotlight } from "@/components/marketing/GalaxySpotlight";
-import { ShopByConditionSection } from "@/components/marketing/ShopByConditionSection";
-import { ProBanner } from "@/components/marketing/ProBanner";
-import { WhyUs } from "@/components/marketing/WhyUs";
-import { OfferSection } from "@/components/marketing/OfferSection";
-import { Newsletter } from "@/components/marketing/Newsletter";
+import { HomeHero, type BrandRow } from "@/components/home/HomeHero";
+import { HeroBanner } from "@/components/home/HeroBanner";
+import { ProductTabs } from "@/components/home/ProductTabs";
+import { ProductCard } from "@/components/store/ProductCard";
+import {
+  AdviceBand,
+  BudgetGrid,
+  Promises,
+  SectionHeading,
+  SeriesIndex,
+  type BudgetBand,
+  type SeriesRow,
+} from "@/components/home/Sections";
 
 export const dynamic = "force-dynamic";
 
-const HERO_SLUGS = ["iphone-17-pro-max", "galaxy-s26-ultra", "playstation-5-pro"];
-const GALAXY_SLUGS = [
-  { slug: "galaxy-s26-ultra", tagline: "Le flagship ultime" },
-  { slug: "galaxy-z-fold7", tagline: "Le smartphone qui devient tablette" },
-  { slug: "galaxy-z-flip7", tagline: "Le pliable de poche" },
-];
+const inPhones = { category: { OR: [{ slug: "smartphones" }, { parent: { slug: "smartphones" } }] } };
 
-function primaryImage(p: ProductWithVariants) {
-  const v = p.variants[0];
-  return (v?.images.find((i) => i.type === "PRIMARY") ?? v?.images[0])?.url;
+
+function minOf(products: ProductWithVariants[]) {
+  return products.length ? Math.min(...products.map(fromPrice)) : undefined;
+}
+
+function stats(products: ProductWithVariants[]) {
+  return {
+    count: products.length,
+    from: products.length ? Math.min(...products.map(fromPrice)) : null,
+  };
 }
 
 export default async function HomePage() {
-  const [featured, topCategories, spotlightProducts] = await Promise.all([
+  const [phones, accessories, series] = await Promise.all([
     prisma.product.findMany({
-      where: { featured: true, ...publishedFilter, variants: { some: {} } },
-      include: { ...productWithVariantsInclude, category: { include: { parent: true } } },
-      orderBy: { updatedAt: "desc" },
-      take: 24,
+      where: { AND: [storefrontFilter, inPhones], variants: { some: {} } },
+      include: productWithVariantsInclude,
+      orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+    }),
+    prisma.product.findMany({
+      where: { AND: [storefrontFilter, { category: { slug: "accessoires" } }], variants: { some: {} } },
+      include: productWithVariantsInclude,
+      orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
     }),
     prisma.category.findMany({
-      where: { parentId: null, active: true },
+      where: { active: true, parent: { slug: "smartphones" } },
       orderBy: { position: "asc" },
-      include: {
-        _count: { select: { products: { where: publishedFilter } } },
-        children: { select: { _count: { select: { products: { where: publishedFilter } } } } },
-      },
-    }),
-    prisma.product.findMany({
-      where: {
-        slug: { in: [...HERO_SLUGS, ...GALAXY_SLUGS.map((g) => g.slug)] },
-        ...publishedFilter,
-        variants: { some: {} },
-      },
-      include: productWithVariantsInclude,
+      select: { name: true, slug: true },
     }),
   ]);
 
-  const bySlug = new Map(spotlightProducts.map((p) => [p.slug, p]));
+  const byBrand = (b: string) => phones.filter((p) => p.brand.toLowerCase() === b);
+  const apple = byBrand("apple");
+  const samsung = byBrand("samsung");
+  const google = byBrand("google");
 
-  const heroSpots: Record<string, HeroSpot | undefined> = {};
-  for (const slug of HERO_SLUGS) {
-    const p = bySlug.get(slug);
-    if (p) heroSpots[slug] = { slug, name: p.name, price: fromPrice(p), image: primaryImage(p) };
-  }
+  const brands: BrandRow[] = [
+    { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple", ...stats(apple) },
+    { label: "Galaxy", href: "/boutique?marque=samsung", ...stats(samsung) },
+    { label: "Pixel", href: "/boutique?marque=google", ...stats(google) },
+  ].filter((b) => b.count > 0);
 
-  const galaxy = GALAXY_SLUGS.flatMap(({ slug, tagline }) => {
-    const p = bySlug.get(slug);
-    return p ? [{ slug, name: p.name, price: fromPrice(p), image: primaryImage(p), tagline }] : [];
-  });
+  const accessoryRow: BrandRow = {
+    label: "Accessoires",
+    href: "/boutique?categorie=accessoires",
+    ...stats(accessories),
+  };
 
-  const universes = topCategories
-    .map((c) => ({
-      slug: c.slug,
-      name: c.name,
-      description: c.description,
-      image: c.image,
-      count: c._count.products + c.children.reduce((s, ch) => s + ch._count.products, 0),
-    }))
-    .filter((u) => u.count > 0);
+  const popular = phones
+    .filter((p) => p.featured)
+    .slice(0, 5)
+    .map((p) => ({ name: p.name, slug: p.slug }));
 
-  const showcase = featured.map((p) => ({
-    card: toProductCardData(p),
-    universe: p.category.parent?.slug ?? p.category.slug,
+  const card = toProductCardData;
+  const tabs = [
+    { key: "all", label: "Tous", products: phones.slice(0, 8).map(card) },
+    { key: "apple", label: "iPhone", products: apple.slice(0, 8).map(card) },
+    { key: "samsung", label: "Samsung", products: samsung.slice(0, 8).map(card) },
+    { key: "google", label: "Pixel", products: google.slice(0, 8).map(card) },
+  ];
+
+  const bands: BudgetBand[] = BUDGETS.map((b) => ({
+    label: b.short,
+    caption: b.caption,
+    href: `/boutique?categorie=smartphones&prix=${b.key}`,
+    count: phones.filter((p) => {
+      const price = fromPrice(p);
+      return price >= b.min && (b.max === null || price < b.max);
+    }).length,
   }));
+
+  const seriesRows: SeriesRow[] = series
+    .map((s) => ({ ...s, ...stats(phones.filter((p) => p.category.slug === s.slug)) }))
+    .filter((s) => s.count > 0);
+  const groups = [
+    { brand: "Apple", rows: seriesRows.filter((s) => s.slug.startsWith("iphone")) },
+    { brand: "Samsung · Google", rows: seriesRows.filter((s) => !s.slug.startsWith("iphone")) },
+  ].filter((g) => g.rows.length > 0);
 
   return (
     <div>
-      <Hero spots={heroSpots} />
-      <UniverseBento universes={universes} />
-      <ProductShowcase items={showcase} />
-      <GalaxySpotlight products={galaxy} />
-      <ShopByConditionSection />
-      <ProBanner />
-      <WhyUs />
-      <OfferSection />
-      <Newsletter />
+      <HeroBanner
+        prices={{
+          iphonePro: minOf(phones.filter((p) => p.category.slug === "iphone-17" && p.name.includes("Pro"))),
+          samsung: minOf(samsung),
+          iphone: minOf(apple),
+        }}
+      />
+      <HomeHero brands={brands} accessories={accessoryRow} popular={popular} totalModels={phones.length} />
+
+      <section className="section-space">
+        <div className="container-page">
+          <SectionHeading
+            index="01"
+            label="Sélection"
+            title="Les modèles du moment."
+            action={{ label: "Tous les téléphones", href: "/boutique?categorie=smartphones" }}
+          />
+          <div className="mt-10">
+            <ProductTabs tabs={tabs} />
+          </div>
+        </div>
+      </section>
+
+      <BudgetGrid bands={bands} />
+      <SeriesIndex groups={groups} />
+
+      {accessories.length > 0 && (
+        <section className="section-space">
+          <div className="container-page">
+            <SectionHeading
+              index="04"
+              label="Accessoires"
+              title="Ce qui va avec : charge, protection, écoute."
+              action={{ label: "Tous les accessoires", href: "/boutique?categorie=accessoires" }}
+            />
+            <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
+              {accessories.slice(0, 4).map((p) => (
+                <ProductCard key={p.id} product={card(p)} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <Promises />
+      <AdviceBand />
     </div>
   );
 }

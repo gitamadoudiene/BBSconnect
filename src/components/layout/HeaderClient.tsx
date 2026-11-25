@@ -9,85 +9,70 @@ import { Logo } from "@/components/ui/Logo";
 import { CartCount, WishlistCount } from "./CartBadge";
 import type { SessionPayload } from "@/lib/session";
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-  children: { id: string; name: string; slug: string }[];
+export type NavSeries = { name: string; slug: string };
+
+type NavItem = {
+  label: string;
+  href: string;
+  /** which smartphone series belong under this entry */
+  match?: (slug: string) => boolean;
 };
 
-const navLinks = [
-  { label: "Boutique", href: "/boutique", hasDropdown: true },
-  { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple" },
-  { label: "Samsung", href: "/boutique?marque=samsung" },
+const nav: NavItem[] = [
+  { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple", match: (s) => s.startsWith("iphone") },
+  { label: "Samsung", href: "/boutique?marque=samsung", match: (s) => s.startsWith("galaxy") },
+  { label: "Google Pixel", href: "/boutique?marque=google" },
+  { label: "Accessoires", href: "/boutique?categorie=accessoires" },
   { label: "Offres", href: "/boutique?deals=1" },
-  { label: "À propos", href: "/a-propos" },
-  { label: "Contact", href: "/contact" },
 ];
 
-export function HeaderClient({
-  categories,
-  session,
-}: {
-  categories: Category[];
-  session: SessionPayload | null;
-}) {
+export function HeaderClient({ series, session }: { series: NavSeries[]; session: SessionPayload | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [shopOpen, setShopOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const router = useRouter();
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    let ticking = false;
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        setScrolled(window.scrollY > 24);
-        ticking = false;
-      });
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    if (searchOpen) searchInputRef.current?.focus();
-  }, [searchOpen]);
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    router.push(query ? `/boutique?q=${encodeURIComponent(query)}` : "/boutique");
-    setSearchOpen(false);
+    const q = query.trim();
+    router.push(q ? `/boutique?q=${encodeURIComponent(q)}` : "/boutique");
     setMenuOpen(false);
   }
 
+  function open(label: string) {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpenMenu(label);
+  }
+
+  function scheduleClose() {
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 120);
+  }
+
+  const accountHref = session ? (session.role === "MERCHANT" ? "/dashboard" : "/compte") : "/connexion";
+
   return (
-    <header className="sticky top-0 z-50 bg-white">
-      {/* Level 1 — slim top bar */}
-      <div
-        className={clsx(
-          "overflow-hidden bg-ink text-white transition-[max-height,opacity] duration-300",
-          scrolled ? "max-h-0 opacity-0" : "max-h-10 opacity-100"
-        )}
-      >
-        <div className="container-page flex h-9 items-center justify-between text-[12px] text-white/80">
-          <p className="hidden sm:block">Livraison rapide à Dakar et partout au Sénégal</p>
-          <div className="flex w-full items-center justify-between gap-5 sm:w-auto sm:justify-end">
-            <a href="tel:+221788379919" className="link-underline hidden hover:text-white md:block">
+    <header className="sticky top-0 z-50 border-b border-line bg-white">
+      {/* Utility strip */}
+      <div className="hidden border-b border-line bg-paper lg:block">
+        <div className="container-page flex h-9 items-center justify-between font-mono text-[11.5px] text-slate">
+          <p>Livraison 24h à Dakar · Paiement à la livraison · Produits garantis</p>
+          <div className="flex items-center gap-5">
+            <a href="tel:+221788379919" className="tabular hover:text-ink">
               78 837 99 19
             </a>
-            <Link href="/compte" className="link-underline hover:text-white">
+            <Link href="/compte" className="hover:text-ink">
               Suivre ma commande
             </Link>
-            <Link href="/contact" className="link-underline hover:text-white">
-              Besoin d&apos;aide ?
-            </Link>
             {session?.role === "MERCHANT" && (
-              <Link href="/dashboard" className="font-medium text-accent hover:text-white">
+              <Link href="/dashboard" className="text-accent hover:text-accent-deep">
                 Espace commerçant
               </Link>
             )}
@@ -95,203 +80,204 @@ export function HeaderClient({
         </div>
       </div>
 
-      {/* Level 2 — main navigation */}
-      <div
-        className={clsx(
-          "border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300",
-          scrolled ? "glass border-transparent" : "border-line bg-white"
-        )}
-      >
-        <div
-          className={clsx(
-            "container-page flex items-center gap-8 transition-[height] duration-300",
-            scrolled ? "h-16" : "h-20"
-          )}
+      {/* Main bar */}
+      <div className="container-page flex h-16 items-center gap-3 sm:gap-6 lg:h-[72px]">
+        <button
+          className="-ml-2 flex h-10 w-10 items-center justify-center rounded-xl text-ink lg:hidden"
+          aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
         >
-          <button
-            className="md:hidden"
-            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            {menuOpen ? <X className="h-6 w-6 text-ink" /> : <Menu className="h-6 w-6 text-ink" />}
-          </button>
+          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
 
-          <Logo />
+        <Logo />
 
-          <nav className="hidden items-center gap-9 text-[14.5px] font-medium text-ink md:flex">
-            {navLinks.map((link) =>
-              link.hasDropdown ? (
-                <div
-                  key={link.href}
-                  className="relative"
-                  onMouseEnter={() => setShopOpen(true)}
-                  onMouseLeave={() => setShopOpen(false)}
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
+          {nav.map((item) => {
+            const items = item.match ? series.filter((s) => item.match!(s.slug)) : [];
+            if (items.length === 0) {
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors hover:bg-paper"
                 >
-                  <Link href={link.href} className="flex items-center gap-1 py-2 link-underline">
-                    {link.label}
-                    <ChevronDown className="h-3.5 w-3.5 text-slate" />
-                  </Link>
-                  {shopOpen && (
-                    <div className="absolute left-0 top-full pt-3">
-                      <div className="glass grid w-[min(760px,80vw)] grid-cols-3 gap-x-6 gap-y-5 rounded-3xl p-6">
-                        {categories.map((cat) => (
-                          <div key={cat.id}>
-                            <Link
-                              href={`/boutique?categorie=${cat.slug}`}
-                              className="text-[13px] font-bold text-ink hover:text-accent"
-                            >
-                              {cat.name}
-                            </Link>
-                            {cat.children.length > 0 && (
-                              <ul className="mt-2 space-y-1">
-                                {cat.children.map((child) => (
-                                  <li key={child.id}>
-                                    <Link
-                                      href={`/boutique?categorie=${child.slug}`}
-                                      className="block text-[13px] text-slate transition hover:text-ink"
-                                    >
-                                      {child.name}
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link key={link.href} href={link.href} className="link-underline py-2">
-                  {link.label}
+                  {item.label}
                 </Link>
-              )
-            )}
-          </nav>
+              );
+            }
+            const isOpen = openMenu === item.label;
+            return (
+              <div
+                key={item.label}
+                className="relative"
+                onMouseEnter={() => open(item.label)}
+                onMouseLeave={scheduleClose}
+              >
+                <button
+                  className={clsx(
+                    "flex items-center gap-1 rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors",
+                    isOpen ? "bg-paper" : "hover:bg-paper"
+                  )}
+                  aria-expanded={isOpen}
+                  onClick={() => (isOpen ? setOpenMenu(null) : open(item.label))}
+                >
+                  {item.label}
+                  <ChevronDown className={clsx("h-3.5 w-3.5 text-slate transition-transform", isOpen && "rotate-180")} />
+                </button>
+                {isOpen && (
+                  <div className="absolute left-0 top-full pt-2" onClick={() => setOpenMenu(null)}>
+                    <div className="w-[280px] rounded-[20px] border border-line bg-white p-2">
+                      <Link
+                        href={item.href}
+                        className="flex items-center justify-between rounded-xl px-3 py-2.5 text-[14px] font-semibold text-ink hover:bg-paper"
+                      >
+                        Tous les {item.label}
+                        <span className="font-mono text-[11px] text-slate">→</span>
+                      </Link>
+                      <div className="my-1 h-px bg-line" />
+                      {items.map((s) => (
+                        <Link
+                          key={s.slug}
+                          href={`/boutique?categorie=${s.slug}`}
+                          className="block rounded-xl px-3 py-2 text-[14px] text-ink-soft hover:bg-paper hover:text-ink"
+                        >
+                          {s.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
 
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <button
-              aria-label="Rechercher"
-              onClick={() => setSearchOpen((v) => !v)}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-mist"
-            >
-              <Search className="h-[18px] w-[18px]" />
-            </button>
-            <Link
-              href={session ? (session.role === "MERCHANT" ? "/dashboard" : "/compte") : "/connexion"}
-              className="hidden h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-mist sm:flex"
-              aria-label="Compte"
-            >
-              <User className="h-[18px] w-[18px]" />
-            </Link>
-            <Link
-              href="/favoris"
-              className="relative hidden h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-mist sm:flex"
-              aria-label="Liste d'envies"
-            >
-              <Heart className="h-[18px] w-[18px]" />
-              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-ink text-[9px] font-bold text-white">
-                <WishlistCount />
-              </span>
-            </Link>
-            <Link
-              href="/panier"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-mist"
-              aria-label="Panier"
-            >
-              <ShoppingBag className="h-[18px] w-[18px]" />
-              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-ink text-[9px] font-bold text-white">
-                <CartCount />
-              </span>
-            </Link>
-          </div>
-        </div>
-
-        {searchOpen && (
-          <div className="glass border-t-0">
-            <form onSubmit={handleSearch} className="container-page flex items-center gap-3 py-4">
-              <Search className="h-4 w-4 shrink-0 text-slate" />
-              <input
-                ref={searchInputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                type="search"
-                placeholder="Rechercher un iPhone, un Galaxy, une console…"
-                className="w-full bg-transparent text-base text-ink outline-none placeholder:text-slate"
-              />
-              <button type="submit" className="btn btn-primary hidden sm:inline-flex">
-                Rechercher
-              </button>
-            </form>
-          </div>
-        )}
-      </div>
-
-      {menuOpen && (
-        <div className="glass border-t-0 px-6 pb-6 md:hidden">
-          <form onSubmit={handleSearch} className="mt-4 flex items-center gap-3 border-b border-line py-3">
-            <Search className="h-4 w-4 shrink-0 text-slate" />
+        <div className="ml-auto flex items-center gap-1">
+          <form onSubmit={handleSearch} className="relative mr-2 hidden xl:block" role="search">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               type="search"
-              placeholder="Rechercher un produit"
-              className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-slate"
+              placeholder="Rechercher un modèle"
+              aria-label="Rechercher un modèle"
+              className="h-10 w-[240px] rounded-xl border border-line bg-paper pl-10 pr-3 text-[14px] text-ink outline-none transition-colors placeholder:text-slate focus:border-accent focus:bg-white"
             />
           </form>
+          <Link
+            href="/boutique"
+            aria-label="Rechercher"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-ink hover:bg-paper xl:hidden"
+          >
+            <Search className="h-[18px] w-[18px]" />
+          </Link>
+          <Link
+            href={accountHref}
+            aria-label="Mon compte"
+            className="hidden h-10 w-10 items-center justify-center rounded-xl text-ink hover:bg-paper sm:flex"
+          >
+            <User className="h-[18px] w-[18px]" />
+          </Link>
+          <Link
+            href="/favoris"
+            aria-label="Favoris"
+            className="relative hidden h-10 w-10 items-center justify-center rounded-xl text-ink hover:bg-paper sm:flex"
+          >
+            <Heart className="h-[18px] w-[18px]" />
+            <Badge>
+              <WishlistCount />
+            </Badge>
+          </Link>
+          <Link
+            href="/panier"
+            aria-label="Panier"
+            className="relative flex h-10 items-center gap-2 rounded-xl bg-ink pl-3 pr-3.5 text-white hover:bg-ink-soft"
+          >
+            <ShoppingBag className="h-[17px] w-[17px]" />
+            <span className="tabular font-mono text-[12.5px]">
+              <CartCount />
+            </span>
+          </Link>
+        </div>
+      </div>
 
-          <nav className="mt-4 flex flex-col gap-1 text-[15px] font-medium text-ink">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-lg px-2 py-2.5 hover:bg-mist"
-                onClick={() => setMenuOpen(false)}
-              >
-                {link.label}
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div
+          className="fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto border-t border-line bg-white lg:hidden"
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("a")) setMenuOpen(false);
+          }}
+        >
+          <div className="container-page py-5">
+            <form onSubmit={handleSearch} className="relative" role="search">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                type="search"
+                placeholder="Rechercher un modèle"
+                aria-label="Rechercher un modèle"
+                className="field pl-11"
+              />
+            </form>
+
+            <nav className="mt-6" aria-label="Navigation mobile">
+              {nav.map((item, i) => {
+                const items = item.match ? series.filter((s) => item.match!(s.slug)) : [];
+                return (
+                  <div key={item.label} className="border-b border-line py-4">
+                    <Link href={item.href} className="flex items-baseline justify-between">
+                      <span className="text-[26px] font-bold tracking-[-0.035em] text-ink">{item.label}</span>
+                      <span className="font-mono text-[11px] text-slate">0{i + 1}</span>
+                    </Link>
+                    {items.length > 0 && (
+                      <div className="rail mt-3 flex gap-2 overflow-x-auto">
+                        {items.map((s) => (
+                          <Link key={s.slug} href={`/boutique?categorie=${s.slug}`} className="chip">
+                            {s.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Link href={accountHref} className="btn btn-secondary">
+                <User className="h-4 w-4" /> {session ? "Mon compte" : "Connexion"}
               </Link>
-            ))}
-            <Link
-              href="/panier"
-              className="flex items-center gap-2 rounded-lg px-2 py-2.5 hover:bg-mist"
-              onClick={() => setMenuOpen(false)}
-            >
-              <ShoppingBag className="h-4 w-4" /> Panier (<CartCount />)
-            </Link>
-            <Link
-              href="/favoris"
-              className="flex items-center gap-2 rounded-lg px-2 py-2.5 hover:bg-mist"
-              onClick={() => setMenuOpen(false)}
-            >
-              <Heart className="h-4 w-4" /> Favoris (<WishlistCount />)
-            </Link>
-            <Link
-              href={session ? (session.role === "MERCHANT" ? "/dashboard" : "/compte") : "/connexion"}
-              className="flex items-center gap-2 rounded-lg px-2 py-2.5 hover:bg-mist"
-              onClick={() => setMenuOpen(false)}
-            >
-              <User className="h-4 w-4" /> {session ? "Mon compte" : "Connexion"}
-            </Link>
-          </nav>
+              <Link href="/favoris" className="btn btn-secondary">
+                <Heart className="h-4 w-4" /> Favoris
+              </Link>
+            </div>
 
-          <div className="mt-4 border-t border-line pt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate">Univers</p>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  href={`/boutique?categorie=${cat.slug}`}
-                  className="rounded-full border border-line px-3 py-1.5 text-xs text-ink hover:border-ink"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {cat.name}
-                </Link>
-              ))}
+            <div className="mt-8 rounded-[20px] bg-paper p-5 font-mono text-[12px] leading-relaxed text-slate">
+              Livraison 24h à Dakar · Paiement à la livraison
+              <br />
+              <a href="tel:+221788379919" className="text-ink">
+                78 837 99 19
+              </a>{" "}
+              ·{" "}
+              <a href="https://wa.me/221788379919" className="text-ink">
+                WhatsApp
+              </a>
             </div>
           </div>
         </div>
       )}
     </header>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-signal px-1 font-mono text-[9.5px] font-medium text-ink">
+      {children}
+    </span>
   );
 }

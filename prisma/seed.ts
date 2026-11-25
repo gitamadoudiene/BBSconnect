@@ -66,12 +66,7 @@ type SeedCategory = { name: string; slug: string; position: number; parent?: str
 
 const categories: SeedCategory[] = [
   { name: "Smartphones", slug: "smartphones", position: 0, description: "iPhone, Samsung Galaxy, Google Pixel — les derniers flagships." },
-  { name: "Tablettes", slug: "tablettes", position: 1, description: "iPad et Galaxy Tab pour créer, travailler et se divertir." },
-  { name: "Ordinateurs", slug: "ordinateurs", position: 2, description: "MacBook et portables nouvelle génération." },
-  { name: "Montres connectées", slug: "montres", position: 3, description: "Apple Watch et Galaxy Watch." },
-  { name: "Audio", slug: "audio", position: 4, description: "AirPods, Galaxy Buds, casques à réduction de bruit." },
-  { name: "Gaming & Drones", slug: "gaming", position: 5, description: "Consoles, drones et tech loisirs." },
-  { name: "Accessoires", slug: "accessoires", position: 6, description: "Coques, chargeurs, câbles et protections." },
+  { name: "Accessoires", slug: "accessoires", position: 1, description: "Coques, chargeurs, câbles, écouteurs et protections." },
 
   { name: "iPhone 17", slug: "iphone-17", position: 0, parent: "smartphones" },
   { name: "iPhone 16", slug: "iphone-16", position: 1, parent: "smartphones" },
@@ -85,11 +80,6 @@ const categories: SeedCategory[] = [
   { name: "Galaxy Z", slug: "galaxy-z", position: 11, parent: "smartphones" },
   { name: "Galaxy A", slug: "galaxy-a", position: 12, parent: "smartphones" },
   { name: "Google Pixel", slug: "google-pixel", position: 13, parent: "smartphones" },
-  { name: "iPad", slug: "ipad", position: 0, parent: "tablettes" },
-  { name: "Galaxy Tab", slug: "galaxy-tab", position: 1, parent: "tablettes" },
-  { name: "MacBook", slug: "macbook", position: 0, parent: "ordinateurs" },
-  { name: "Apple Watch", slug: "apple-watch", position: 0, parent: "montres" },
-  { name: "Galaxy Watch", slug: "galaxy-watch", position: 1, parent: "montres" },
 ];
 
 type SeedImage = { url: string; type: ImageType; position: number; alt?: string };
@@ -116,6 +106,21 @@ type SeedProduct = {
 
 function img(url: string, type: ImageType = "GALLERY" as ImageType, position = 0): SeedImage {
   return { url, type, position };
+}
+
+/**
+ * Pexels photos that show hands or people. The storefront shows products
+ * only, so these are filtered out of every variant below. A variant left
+ * without photos is rendered with the device silhouette in its colour.
+ */
+const PEOPLE_PHOTO_IDS = new Set(["12823845", "13367286", "16149964", "16149968", "18525573", "19022728", "19022751", "19022752", "30466736", "30466737", "35599938", "41017339", "41017735", "4523010", "4716356", "5081914", "5083218", "6857559", "7375978", "9667337", "968639", "9995703"]);
+
+function productOnly(images: SeedImage[]): SeedImage[] {
+  const kept = images.filter((im) => {
+    const id = /photos\/(\d+)\//.exec(im.url)?.[1];
+    return !id || !PEOPLE_PHOTO_IDS.has(id);
+  });
+  return kept.map((im, i) => ({ ...im, position: i, type: (i === 0 ? "PRIMARY" : "GALLERY") as ImageType }));
 }
 
 const products: SeedProduct[] = [
@@ -825,8 +830,8 @@ const products: SeedProduct[] = [
     ],
   },
   // =====================================================================
-  // Multi-brand catalogue — Samsung Galaxy, Google, Apple (hors iPhone),
-  // audio, gaming & drones. Photography: verified Pexels CDN URLs (HTTP 200).
+  // Multi-brand phones — Samsung Galaxy, Google Pixel — and phone audio
+  // accessories. Photography: verified Pexels CDN URLs (HTTP 200).
   // =====================================================================
 
   // ---------------- Samsung Galaxy S ----------------
@@ -888,7 +893,7 @@ const products: SeedProduct[] = [
         storage: "256 Go",
         price: 690000,
         stock: 9,
-        images: [img(pexels("16149964"), "PRIMARY" as ImageType, 0), img(pexels("16149968"), "GALLERY" as ImageType, 1)],
+        images: [img(pexels("30466740"), "PRIMARY" as ImageType, 0)],
       },
       {
         sku: "SGS26P-512-WHT",
@@ -897,7 +902,7 @@ const products: SeedProduct[] = [
         storage: "512 Go",
         price: 780000,
         stock: 5,
-        images: [img(pexels("16149968"), "PRIMARY" as ImageType, 0), img(pexels("16149964"), "GALLERY" as ImageType, 1)],
+        images: [img(pexels("16149966"), "PRIMARY" as ImageType, 0)],
       },
     ],
   },
@@ -953,7 +958,7 @@ const products: SeedProduct[] = [
         price: 1250000,
         compareAtPrice: 1350000,
         stock: 4,
-        images: [img(pexels("41017735"), "PRIMARY" as ImageType, 0), img(pexels("30466739"), "GALLERY" as ImageType, 1)],
+        images: [img(pexels("32136396"), "PRIMARY" as ImageType, 0), img(pexels("30466739"), "GALLERY" as ImageType, 1)],
       },
       {
         sku: "SGZF7-512-BLU",
@@ -962,7 +967,7 @@ const products: SeedProduct[] = [
         storage: "512 Go",
         price: 1390000,
         stock: 3,
-        images: [img(pexels("30466739"), "PRIMARY" as ImageType, 0), img(pexels("41017735"), "GALLERY" as ImageType, 1)],
+        images: [img(pexels("17984648"), "PRIMARY" as ImageType, 0), img(pexels("30466739"), "GALLERY" as ImageType, 1)],
       },
     ],
   },
@@ -1055,155 +1060,15 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ---------------- Tablettes ----------------
-  {
-    name: "iPad Pro M5",
-    slug: "ipad-pro-m5",
-    brand: "Apple",
-    category: "iPad",
-    featured: true,
-    description:
-      "Incroyablement fin, follement puissant. L'iPad Pro avec puce M5 et écran Ultra Retina XDR tandem OLED redéfinit ce qu'une tablette peut faire.",
-    specs:
-      "Écran : Ultra Retina XDR (tandem OLED) 11 ou 13 pouces\nPuce : Apple M5\nÉpaisseur : 5,1 mm (13 pouces)\nCaméra : 12 Mpx + LiDAR\nConnectivité : Thunderbolt / USB 4, Wi-Fi 7\nCompatible : Apple Pencil Pro, Magic Keyboard",
-    variants: [
-      {
-        sku: "IPADPM5-11-256-SB",
-        colorName: "Noir sidéral",
-        colorHex: "#2e2e30",
-        storage: "11\" · 256 Go",
-        price: 750000,
-        stock: 7,
-        images: [img(pexels("13791390"), "PRIMARY" as ImageType, 0), img(pexels("6849081"), "GALLERY" as ImageType, 1)],
-      },
-      {
-        sku: "IPADPM5-13-512-SLV",
-        colorName: "Argent",
-        colorHex: "#e3e4e5",
-        storage: "13\" · 512 Go",
-        price: 1050000,
-        compareAtPrice: 1120000,
-        stock: 4,
-        images: [img("/images/Apple-IPad-Pro-with-M1.jpg", "PRIMARY" as ImageType, 0), img(pexels("16150335"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
-  {
-    name: "Galaxy Tab S11 Ultra",
-    slug: "galaxy-tab-s11-ultra",
-    brand: "Samsung",
-    category: "Galaxy Tab",
-    description:
-      "Un écran AMOLED de 14,6 pouces, un S Pen inclus et Galaxy AI : la Galaxy Tab S11 Ultra est un véritable studio de création portable.",
-    specs:
-      "Écran : Dynamic AMOLED 2X 14,6 pouces, 120Hz\nProcesseur : MediaTek Dimensity 9400+\nS Pen : inclus\nBatterie : 11 600 mAh\nRésistance : IP68",
-    variants: [
-      {
-        sku: "SGTS11U-256-GRY",
-        colorName: "Gris",
-        colorHex: "#5a5b5e",
-        storage: "256 Go",
-        price: 820000,
-        stock: 5,
-        images: [img(pexels("286565"), "PRIMARY" as ImageType, 0), img(pexels("41017339"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
 
-  // ---------------- Ordinateurs ----------------
-  {
-    name: "MacBook Air M4",
-    slug: "macbook-air-m4",
-    brand: "Apple",
-    category: "MacBook",
-    featured: true,
-    description:
-      "Léger comme l'air, puissant comme jamais. Le MacBook Air M4 offre jusqu'à 18 heures d'autonomie, Apple Intelligence et un silence absolu grâce à son design sans ventilateur.",
-    specs:
-      "Écran : Liquid Retina 13,6 ou 15,3 pouces\nPuce : Apple M4 (CPU 10 cœurs)\nMémoire : 16 Go unifiée\nAutonomie : jusqu'à 18h\nCaméra : Center Stage 12 Mpx\nPorts : 2× Thunderbolt 4, MagSafe 3",
-    variants: [
-      {
-        sku: "MBA-M4-13-256-MID",
-        colorName: "Minuit",
-        colorHex: "#2e3642",
-        storage: "13\" · 256 Go",
-        price: 820000,
-        compareAtPrice: 880000,
-        stock: 6,
-        images: [img(pexels("6581378"), "PRIMARY" as ImageType, 0), img(pexels("9635252"), "GALLERY" as ImageType, 1)],
-      },
-      {
-        sku: "MBA-M4-15-512-SKY",
-        colorName: "Bleu ciel",
-        colorHex: "#b9cbdb",
-        storage: "15\" · 512 Go",
-        price: 1090000,
-        stock: 4,
-        images: [img(pexels("812264"), "PRIMARY" as ImageType, 0), img(pexels("9635252"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
 
-  // ---------------- Montres connectées ----------------
-  {
-    name: "Apple Watch Series 11",
-    slug: "apple-watch-series-11",
-    brand: "Apple",
-    category: "Apple Watch",
-    description:
-      "Votre coach santé au poignet : suivi du sommeil, notifications d'hypertension, ECG et jusqu'à 24 heures d'autonomie.",
-    specs:
-      "Boîtier : aluminium 42 ou 46 mm\nÉcran : Retina toujours activé, verre Ion-X renforcé\nSanté : ECG, oxygène sanguin, sommeil, température\nAutonomie : jusqu'à 24h\nRésistance : 50 m",
-    variants: [
-      {
-        sku: "AWS11-46-JET",
-        colorName: "Noir de jais",
-        colorHex: "#1d1d1f",
-        storage: "46 mm",
-        price: 330000,
-        stock: 9,
-        images: [img(pexels("5081914"), "PRIMARY" as ImageType, 0), img(pexels("7375978"), "GALLERY" as ImageType, 1)],
-      },
-      {
-        sku: "AWS11-42-SLV",
-        colorName: "Argent",
-        colorHex: "#dcdcdc",
-        storage: "42 mm",
-        price: 300000,
-        stock: 7,
-        images: [img(pexels("5083218"), "PRIMARY" as ImageType, 0), img(pexels("7375978"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
-  {
-    name: "Galaxy Watch8 Classic",
-    slug: "galaxy-watch8-classic",
-    brand: "Samsung",
-    category: "Galaxy Watch",
-    description:
-      "La lunette rotative iconique revient avec un suivi santé de pointe : indice antioxydant, coaching sommeil et Gemini au poignet.",
-    specs:
-      "Boîtier : acier inoxydable 46 mm\nÉcran : Super AMOLED 1,34 pouce, verre saphir\nSanté : ECG, composition corporelle, sommeil, indice antioxydant\nAutonomie : jusqu'à 40h\nRésistance : 5 ATM + IP68",
-    variants: [
-      {
-        sku: "SGW8C-46-BLK",
-        colorName: "Noir",
-        colorHex: "#222224",
-        storage: "46 mm",
-        price: 260000,
-        compareAtPrice: 290000,
-        stock: 8,
-        images: [img(pexels("12237047"), "PRIMARY" as ImageType, 0), img(pexels("12823845"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
 
-  // ---------------- Audio ----------------
+  // ---------------- Accessoires audio ----------------
   {
     name: "AirPods Pro 3",
     slug: "airpods-pro-3",
     brand: "Apple",
-    category: "Audio",
+    category: "Accessoires",
     featured: true,
     description:
       "La meilleure réduction de bruit jamais vue sur des AirPods, le suivi de la fréquence cardiaque et la traduction en direct. Un son immersif, partout.",
@@ -1224,7 +1089,7 @@ const products: SeedProduct[] = [
     name: "Galaxy Buds3 Pro",
     slug: "galaxy-buds3-pro",
     brand: "Samsung",
-    category: "Audio",
+    category: "Accessoires",
     description:
       "Design lame lumineuse, son Hi-Fi 24 bits et réduction de bruit intelligente : les Galaxy Buds3 Pro sont pensés pour l'écosystème Galaxy.",
     specs:
@@ -1241,92 +1106,7 @@ const products: SeedProduct[] = [
       },
     ],
   },
-  {
-    name: "Sony WH-1000XM6",
-    slug: "sony-wh-1000xm6",
-    brand: "Sony",
-    category: "Audio",
-    description:
-      "La référence des casques à réduction de bruit. Le WH-1000XM6 pousse encore plus loin le silence, le confort et la qualité d'appel.",
-    specs:
-      "Réduction de bruit : processeur QN3, 12 microphones\nAudio : LDAC, Hi-Res Audio Wireless\nAutonomie : jusqu'à 30h\nCharge rapide : 3 min = 3h d'écoute\nPliable : oui, étui inclus",
-    variants: [
-      {
-        sku: "SONY-XM6-BLK",
-        colorName: "Noir",
-        colorHex: "#1f1f1f",
-        price: 260000,
-        stock: 7,
-        images: [img(pexels("33481395"), "PRIMARY" as ImageType, 0), img(pexels("12877816"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
 
-  // ---------------- Gaming & Drones ----------------
-  {
-    name: "PlayStation 5 Pro",
-    slug: "playstation-5-pro",
-    brand: "Sony",
-    category: "Gaming & Drones",
-    featured: true,
-    description:
-      "La PS5 la plus puissante : GPU amélioré, ray tracing avancé et upscaling PSSR pour des jeux en 4K fluides à 60 images par seconde et plus.",
-    specs:
-      "Stockage : SSD 2 To\nGraphismes : ray tracing avancé, PSSR (upscaling IA)\nRésolution : jusqu'à 8K\nConnectivité : Wi-Fi 7\nInclus : manette sans fil DualSense",
-    variants: [
-      {
-        sku: "PS5PRO-2TB",
-        colorName: "Blanc",
-        colorHex: "#f2f2f2",
-        storage: "2 To",
-        price: 480000,
-        compareAtPrice: 520000,
-        stock: 5,
-        images: [img(pexels("32967534"), "PRIMARY" as ImageType, 0), img(pexels("33513532"), "GALLERY" as ImageType, 1), img(pexels("38413087"), "GALLERY" as ImageType, 2)],
-      },
-    ],
-  },
-  {
-    name: "Nintendo Switch 2",
-    slug: "nintendo-switch-2",
-    brand: "Nintendo",
-    category: "Gaming & Drones",
-    description:
-      "Plus grande, plus puissante, plus fun. La Nintendo Switch 2 joue en 4K sur la TV et en 1080p 120Hz en mode portable, avec ses nouveaux Joy-Con magnétiques.",
-    specs:
-      "Écran : LCD 7,9 pouces 1080p, 120Hz, HDR\nSortie TV : jusqu'à 4K\nStockage : 256 Go\nJoy-Con 2 : fixation magnétique, mode souris\nChat : GameChat intégré",
-    variants: [
-      {
-        sku: "NSW2-256",
-        colorName: "Noir",
-        colorHex: "#26262a",
-        storage: "256 Go",
-        price: 330000,
-        stock: 9,
-        images: [img(pexels("4523010"), "PRIMARY" as ImageType, 0), img(pexels("4523030"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
-  {
-    name: "DJI Mini 5 Pro",
-    slug: "dji-mini-5-pro",
-    brand: "DJI",
-    category: "Gaming & Drones",
-    description:
-      "Moins de 250 g, un capteur 1 pouce et la détection d'obstacles omnidirectionnelle : le drone compact idéal pour filmer le Sénégal vu du ciel.",
-    specs:
-      "Poids : < 250 g\nCapteur : CMOS 1 pouce, 50 Mpx\nVidéo : 4K/120 ips, HDR\nAutonomie : jusqu'à 36 min\nSécurité : détection d'obstacles omnidirectionnelle",
-    variants: [
-      {
-        sku: "DJI-MINI5P-STD",
-        colorName: "Gris",
-        colorHex: "#8c8f93",
-        price: 560000,
-        stock: 4,
-        images: [img(pexels("9182739"), "PRIMARY" as ImageType, 0), img(pexels("11026274"), "GALLERY" as ImageType, 1)],
-      },
-    ],
-  },
 ];
 
 async function main() {
@@ -1395,7 +1175,7 @@ async function main() {
           position: i,
           productId: product.id,
           images: {
-            create: v.images.map((im) => ({ url: im.url, type: im.type, position: im.position })),
+            create: productOnly(v.images).map((im) => ({ url: im.url, type: im.type, position: im.position })),
           },
         },
       });

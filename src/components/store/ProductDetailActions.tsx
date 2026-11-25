@@ -55,18 +55,18 @@ export function ProductDetailActions({
   return (
     <div>
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex items-center rounded-full border border-line">
+        <div className="flex items-center rounded-[14px] border border-line-strong">
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="flex h-11 w-11 items-center justify-center text-ink transition hover:bg-mist"
+            className="flex h-12 w-11 items-center justify-center text-ink transition-colors hover:text-accent"
             aria-label="Diminuer la quantité"
           >
             <Minus className="h-4 w-4" />
           </button>
-          <span className="w-8 text-center text-sm font-semibold">{qty}</span>
+          <span className="tabular w-8 text-center font-mono text-[14px] font-medium">{qty}</span>
           <button
             onClick={() => setQty((q) => Math.min(stock, q + 1))}
-            className="flex h-11 w-11 items-center justify-center text-ink transition hover:bg-mist"
+            className="flex h-12 w-11 items-center justify-center text-ink transition-colors hover:text-accent"
             aria-label="Augmenter la quantité"
           >
             <Plus className="h-4 w-4" />
@@ -74,10 +74,10 @@ export function ProductDetailActions({
         </div>
         <button
           onClick={() => toggleWishlist(productId)}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-line transition hover:border-ink"
+          className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-line-strong transition-colors hover:border-ink"
           aria-label="Ajouter aux favoris"
         >
-          <Heart className={clsx("h-4 w-4", inWishlist ? "fill-sale text-sale" : "text-ink")} />
+          <Heart className={clsx("h-4 w-4", inWishlist ? "fill-signal text-signal-deep" : "text-ink")} />
         </button>
       </div>
 
@@ -85,7 +85,7 @@ export function ProductDetailActions({
         <button
           disabled={stock <= 0}
           onClick={handleAdd}
-          className="btn btn-primary flex-1 disabled:cursor-not-allowed disabled:opacity-40"
+          className="btn btn-accent h-[52px] flex-1"
         >
           <ShoppingCart className="h-4 w-4" />
           {added ? "Ajouté !" : "Ajouter au panier"}
@@ -93,7 +93,7 @@ export function ProductDetailActions({
         <button
           disabled={stock <= 0}
           onClick={handleBuyNow}
-          className="btn btn-secondary flex-1 disabled:cursor-not-allowed disabled:opacity-40"
+          className="btn btn-primary h-[52px] flex-1"
         >
           Acheter maintenant
         </button>

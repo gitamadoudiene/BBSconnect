@@ -47,7 +47,7 @@ export default function CartPage() {
             <div key={item.variantId} className="flex items-center gap-4 border-b border-line pb-5">
               <Link
                 href={`/boutique/${item.productSlug}`}
-                className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-mist"
+                className="relative h-24 w-20 shrink-0 overflow-hidden rounded-[14px] bg-paper"
               >
                 {item.image && (
                   <Image src={item.image} alt={item.productName} fill sizes="80px" className="object-cover" />
@@ -60,38 +60,38 @@ export default function CartPage() {
                 >
                   {item.productName}
                 </Link>
-                <p className="text-[13px] text-slate">
+                <p className="font-mono text-[12px] text-slate">
                   {[item.colorName, item.storage].filter(Boolean).join(" · ")}
                 </p>
-                <p className="mt-1.5 text-[15px] font-semibold text-ink">{formatFCFA(item.price)}</p>
+                <p className="tabular mt-1.5 text-[15px] font-semibold text-ink">{formatFCFA(item.price)}</p>
               </div>
 
-              <div className="flex items-center rounded-full border border-line">
+              <div className="flex items-center rounded-[12px] border border-line-strong">
                 <button
                   onClick={() => setQuantity(item.variantId, item.quantity - 1)}
-                  className="flex h-9 w-9 items-center justify-center text-ink transition hover:bg-mist"
+                  className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-accent"
                   aria-label="Diminuer"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
-                <span className="w-7 text-center text-sm font-semibold">{item.quantity}</span>
+                <span className="tabular w-7 text-center font-mono text-[13px] font-medium">{item.quantity}</span>
                 <button
                   onClick={() => setQuantity(item.variantId, item.quantity + 1)}
-                  className="flex h-9 w-9 items-center justify-center text-ink transition hover:bg-mist"
+                  className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-accent"
                   aria-label="Augmenter"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
               </div>
 
-              <p className="hidden w-28 text-right text-[15px] font-semibold text-ink sm:block">
+              <p className="tabular hidden w-32 text-right text-[15px] font-semibold text-ink sm:block">
                 {formatFCFA(item.price * item.quantity)}
               </p>
 
               <button
                 onClick={() => removeItem(item.variantId)}
                 aria-label="Retirer"
-                className="text-slate transition hover:text-sale"
+                className="flex h-9 w-9 items-center justify-center rounded-[12px] text-slate transition-colors hover:bg-paper hover:text-signal-deep"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -103,9 +103,9 @@ export default function CartPage() {
           </Link>
         </div>
 
-        <div className="h-fit rounded-2xl bg-paper p-7">
+        <div className="card-paper h-fit p-7 lg:sticky lg:top-32">
           <h2 className="text-eyebrow mb-5 text-slate">Récapitulatif</h2>
-          <div className="space-y-2.5 text-[14px] text-slate">
+          <div className="tabular space-y-2.5 text-[14px] text-slate">
             <div className="flex justify-between">
               <span>Sous-total</span>
               <span className="text-ink">{formatFCFA(subtotal)}</span>
@@ -115,11 +115,11 @@ export default function CartPage() {
               <span className="text-ink">{formatFCFA(SHIPPING_FEE)}</span>
             </div>
           </div>
-          <div className="mt-4 flex justify-between border-t border-line pt-4 text-[17px] font-semibold text-ink">
+          <div className="tabular mt-4 flex justify-between border-t border-ink pt-4 text-[18px] font-bold text-ink">
             <span>Total</span>
             <span>{formatFCFA(total)}</span>
           </div>
-          <Link href="/checkout" className="btn btn-primary mt-6 w-full">
+          <Link href="/checkout" className="btn btn-accent mt-6 w-full">
             Passer la commande
           </Link>
         </div>

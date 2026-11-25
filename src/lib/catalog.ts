@@ -4,6 +4,29 @@ import type { Prisma } from "@prisma/client";
  * products stay visible in the dashboard only. */
 export const publishedFilter: Prisma.ProductWhereInput = { status: "PUBLISHED" };
 
+/** What the storefront may show: published, and filed in an active category
+ * whose parent (if any) is active too. Deactivating a category in the
+ * dashboard therefore hides its products everywhere. */
+export const storefrontFilter: Prisma.ProductWhereInput = {
+  status: "PUBLISHED",
+  category: { active: true, OR: [{ parentId: null }, { parent: { active: true } }] },
+};
+
+/** Price bands shared by the home page and the shop filters (F CFA). */
+export const BUDGETS = [
+  { key: "0-250000", label: "Moins de 250 000", short: "< 250 000", caption: "Essentiel", min: 0, max: 250_000 },
+  { key: "250000-500000", label: "250 000 – 500 000", short: "250 – 500 000", caption: "Équilibre", min: 250_000, max: 500_000 },
+  { key: "500000-900000", label: "500 000 – 900 000", short: "500 – 900 000", caption: "Premium", min: 500_000, max: 900_000 },
+  { key: "900000-", label: "900 000 et plus", short: "900 000 +", caption: "Ultra", min: 900_000, max: null },
+] as const;
+
+/** Parses `?prix=min-max` (max optional). */
+export function parsePriceRange(value?: string): { min: number; max: number | null } | null {
+  const m = /^(\d+)-(\d*)$/.exec(value ?? "");
+  if (!m) return null;
+  return { min: Number(m[1]), max: m[2] ? Number(m[2]) : null };
+}
+
 /** Matches products in a category OR in any of its sub-categories, so
  * `?categorie=smartphones` returns every iPhone, Galaxy and Pixel. */
 export function categoryFilter(slug: string): Prisma.ProductWhereInput {
