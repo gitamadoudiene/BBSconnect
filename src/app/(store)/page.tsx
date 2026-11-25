@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { formatFCFA } from "@/lib/format";
 import { BUDGETS, fromPrice, productWithVariantsInclude, storefrontFilter, toProductCardData } from "@/lib/catalog";
 import type { ProductWithVariants } from "@/lib/catalog";
 import { HomeHero, type BrandRow } from "@/components/home/HomeHero";
 import { HeroBanner } from "@/components/home/HeroBanner";
+import { PromoTiles, ServiceStrip, Shortcuts, VideoBanner, type PromoTile } from "@/components/home/Promos";
 import { ProductTabs } from "@/components/home/ProductTabs";
 import { ProductCard } from "@/components/store/ProductCard";
 import {
@@ -98,6 +100,59 @@ export default async function HomePage() {
     { brand: "Samsung · Google", rows: seriesRows.filter((s) => !s.slug.startsWith("iphone")) },
   ].filter((g) => g.rows.length > 0);
 
+  const bySlug = (slug: string) => phones.filter((p) => p.slug === slug);
+  const maxDiscount = Math.max(
+    0,
+    ...phones.flatMap((p) =>
+      p.variants
+        .filter((v) => v.compareAtPrice && v.compareAtPrice > v.price)
+        .map((v) => Math.round(100 - (v.price / v.compareAtPrice!) * 100))
+    )
+  );
+  const dès = (n?: number) => (n !== undefined ? `dès ${formatFCFA(n)}` : undefined);
+
+  const tiles: PromoTile[] = [
+    {
+      key: "air",
+      eyebrow: "iPhone Air",
+      title: "L'iPhone le plus fin.",
+      price: dès(minOf(bySlug("iphone-air"))),
+      href: "/boutique/iphone-air",
+      tone: "sky",
+      images: [{ src: "/images/banner/iphone-air.webp", alt: "iPhone Air", className: "-bottom-6 -right-4 w-[52%] rotate-[8deg]" }],
+    },
+    {
+      key: "iphone17",
+      eyebrow: "iPhone 17",
+      title: "Le nouveau standard.",
+      price: dès(minOf(bySlug("iphone-17"))),
+      href: "/boutique/iphone-17",
+      tone: "paper",
+      images: [
+        { src: "/images/banner/iphone17-white.webp", alt: "iPhone 17 blanc", className: "-bottom-4 right-[18%] w-[38%] -rotate-[6deg]" },
+        { src: "/images/banner/iphone17-black.webp", alt: "iPhone 17 noir", className: "-bottom-10 -right-3 w-[36%] rotate-[7deg]" },
+      ],
+    },
+    {
+      key: "accessoires",
+      eyebrow: "Accessoires",
+      title: "Protégez votre téléphone.",
+      price: dès(accessoryRow.from ?? undefined),
+      href: "/boutique?categorie=accessoires",
+      tone: "peach",
+      images: [{ src: "/images/banner/case-magsafe.webp", alt: "Coque MagSafe pour iPhone", className: "-bottom-8 -right-2 w-[34%] rotate-[10deg]" }],
+    },
+    {
+      key: "offres",
+      eyebrow: "Offres du moment",
+      title: maxDiscount > 0 ? `Jusqu'à −${maxDiscount} %` : "Les bons plans",
+      price: "Sur une sélection de téléphones",
+      href: "/boutique?deals=1",
+      tone: "ink",
+      images: [{ src: "/images/banner/iphone12-range.webp", alt: "iPhone 12 en cinq coloris", className: "-bottom-6 -right-8 w-[64%] -rotate-[4deg]" }],
+    },
+  ];
+
   return (
     <div>
       <HeroBanner
@@ -107,6 +162,9 @@ export default async function HomePage() {
           iphone: minOf(apple),
         }}
       />
+      <ServiceStrip />
+      <Shortcuts />
+      <PromoTiles tiles={tiles} />
       <HomeHero brands={brands} accessories={accessoryRow} popular={popular} totalModels={phones.length} />
 
       <section className="section-space">
@@ -123,6 +181,7 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <VideoBanner price={minOf(bySlug("iphone-17"))} />
       <BudgetGrid bands={bands} />
       <SeriesIndex groups={groups} />
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, ShieldCheck, Truck, Wallet } from "lucide-react";
 import { formatFCFA } from "@/lib/format";
 
 /** Numbered section heading — the site reads like a well-made spec sheet. */
@@ -110,18 +110,22 @@ export function SeriesIndex({ groups }: { groups: { brand: string; rows: SeriesR
 
 const promises = [
   {
+    icon: BadgeCheck,
     title: "Authentique",
     text: "Des produits d'origine, sélectionnés et vérifiés avant chaque mise en vente.",
   },
   {
+    icon: ShieldCheck,
     title: "Garanti",
     text: "Garantis contre les défauts de fabrication, avec un interlocuteur qui répond après l'achat.",
   },
   {
+    icon: Truck,
     title: "Livré en 24 h",
     text: "Livraison rapide à Dakar, expédition partout au Sénégal.",
   },
   {
+    icon: Wallet,
     title: "Payé à la livraison",
     text: "Payez à la réception, ou par Mobile Money (Orange Money, Wave).",
   },
@@ -135,7 +139,12 @@ export function Promises() {
         <ol className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-[24px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {promises.map((p, i) => (
             <li key={p.title} className="flex flex-col bg-white p-6 lg:min-h-[240px] lg:p-7">
-              <span className="font-mono text-[12px] text-accent">0{i + 1}</span>
+              <span className="flex items-start justify-between">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-tint text-accent">
+                  <p.icon className="h-[22px] w-[22px]" strokeWidth={1.7} />
+                </span>
+                <span className="font-mono text-[12px] text-slate">0{i + 1}</span>
+              </span>
               <h3 className="mt-8 text-[21px] font-bold tracking-[-0.03em] text-ink lg:mt-auto">{p.title}</h3>
               <p className="mt-2 text-[14.5px] leading-relaxed text-slate">{p.text}</p>
             </li>

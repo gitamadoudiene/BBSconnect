@@ -266,29 +266,9 @@ export function HeroBanner({ prices }: { prices: BannerPrices }) {
                   <FloatingPhone key={p.src} phone={p} order={i} dir={dir} sx={sx} sy={sy} reduce={!!reduce} />
                 ))}
 
-                {/* Swinging price tag */}
-                <motion.div
-                  className="absolute right-[6%] top-[6%] z-20 origin-top lg:right-[8%] lg:top-[8%]"
-                  initial={{ opacity: 0, y: -30, rotate: -25 }}
-                  animate={reduce ? { opacity: 1, y: 0, rotate: 0 } : { opacity: 1, y: 0, rotate: [-25, 14, -8, 5, -2, 0] }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 1.4, delay: 0.35, ease: "easeOut" }}
-                >
-                  <span aria-hidden className="mx-auto block h-5 w-px bg-current opacity-40" />
-                  <span
-                    className={clsx(
-                      "flex h-[92px] w-[92px] flex-col items-center justify-center rounded-full text-center font-mono text-[10.5px] font-medium uppercase leading-tight tracking-[0.06em] lg:h-[108px] lg:w-[108px] lg:text-[11.5px]",
-                      t.tag
-                    )}
-                  >
-                    {slide.tag}
-                    {price !== undefined && (
-                      <span className="tabular mt-1 text-[12px] font-semibold normal-case tracking-normal lg:text-[13px]">
-                        dès {price.toLocaleString("fr-FR").replace(/ | /g, " ")} F
-                      </span>
-                    )}
-                  </span>
-                </motion.div>
+                {price !== undefined && (
+                  <PriceTag label={slide.tag} price={price} theme={slide.theme} reduce={!!reduce} />
+                )}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -384,6 +364,69 @@ function FloatingPhone({
           className="h-full w-auto max-w-none select-none object-contain drop-shadow-[0_28px_30px_rgba(0,0,0,0.28)]"
           draggable={false}
         />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/** Hang tag: a real price label on a string — drops in, then swings gently. */
+function PriceTag({
+  label,
+  price,
+  theme,
+  reduce,
+}: {
+  label: string;
+  price: number;
+  theme: Slide["theme"];
+  reduce: boolean;
+}) {
+  const colors = {
+    orange: { body: "#121315", text: "#ffffff", accent: "#EA792C", string: "rgba(18,19,21,0.55)" },
+    blue: { body: "#EA792C", text: "#121315", accent: "#121315", string: "rgba(255,255,255,0.7)" },
+    ink: { body: "#00A0CA", text: "#121315", accent: "#ffffff", string: "rgba(255,255,255,0.55)" },
+  }[theme];
+  const amount = price.toLocaleString("fr-FR").replace(/ | /g, " ");
+
+  return (
+    <motion.div
+      className="absolute right-[5%] top-0 z-20 lg:right-[7%]"
+      style={{ transformOrigin: "50% 0%" }}
+      initial={{ opacity: 0, y: -80 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -60, transition: { duration: 0.3 } }}
+      transition={{ type: "spring", stiffness: 140, damping: 12, delay: 0.3 }}
+    >
+      <motion.div
+        style={{ transformOrigin: "50% 0%" }}
+        animate={reduce ? undefined : { rotate: [7, -5, 4, -3, 3] }}
+        transition={{ duration: 6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+      >
+        {/* string */}
+        <svg width="2" height="44" className="mx-auto block lg:h-[56px]" aria-hidden>
+          <line x1="1" y1="0" x2="1" y2="56" stroke={colors.string} strokeWidth="2" />
+        </svg>
+        {/* tag body: notched label with an eyelet */}
+        <div className="relative -mt-1 w-[104px] lg:w-[124px]">
+          <svg viewBox="0 0 124 158" className="block h-auto w-full drop-shadow-[0_14px_18px_rgba(0,0,0,0.25)]" aria-hidden>
+            <path d="M40 4 L84 4 L120 40 L120 146 Q120 154 112 154 L12 154 Q4 154 4 146 L4 40 Z" fill={colors.body} />
+            <circle cx="62" cy="22" r="7" fill="none" stroke={colors.string} strokeWidth="2.5" />
+            <circle cx="62" cy="22" r="4.5" fill="rgba(0,0,0,0.25)" />
+          </svg>
+          <div
+            className="absolute inset-x-0 top-[30%] flex flex-col items-center px-2 text-center"
+            style={{ color: colors.text }}
+          >
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] lg:text-[10px]" style={{ color: colors.accent }}>
+              {label}
+            </span>
+            <span className="mt-1.5 font-mono text-[9.5px] opacity-75 lg:text-[10.5px]">à partir de</span>
+            <span className="tabular mt-0.5 text-[17px] font-bold leading-none tracking-[-0.03em] lg:text-[21px]">
+              {amount}
+            </span>
+            <span className="mt-1 font-mono text-[9.5px] lg:text-[10.5px]">F CFA</span>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 
 const columns = [
@@ -44,10 +45,10 @@ export function Footer() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="https://wa.me/221788379919" target="_blank" rel="noopener noreferrer" className="btn btn-inverse btn-sm">
-                WhatsApp
+                <MessageCircle className="h-4 w-4" /> WhatsApp
               </a>
               <a href="tel:+221788379919" className="btn btn-ghost-light btn-sm tabular">
-                78 837 99 19
+                <Phone className="h-4 w-4" /> 78 837 99 19
               </a>
             </div>
           </div>
@@ -71,9 +72,10 @@ export function Footer() {
         </div>
 
         <div className="mt-16 grid grid-cols-1 gap-6 border-t border-white/10 pt-8 font-mono text-[12px] text-white/45 md:grid-cols-3">
-          <p>Dakar, Sénégal</p>
-          <p className="tabular md:text-center">
-            78 837 99 19 · 75 459 68 30 ·{" "}
+          <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Dakar, Sénégal</p>
+          <p className="tabular flex flex-wrap items-center gap-2 md:justify-center">
+            <Phone className="h-3.5 w-3.5" /> 78 837 99 19 · 75 459 68 30 ·
+            <Mail className="h-3.5 w-3.5" />
             <a href="mailto:ballabusinessservice@gmail.com" className="hover:text-white/80">
               ballabusinessservice@gmail.com
             </a>

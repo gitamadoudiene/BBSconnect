@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BadgeCheck, ShieldCheck, Truck, Wallet } from "lucide-react";
 import clsx from "clsx";
 import { ProductGallery } from "./ProductGallery";
 import { ProductDetailActions } from "./ProductDetailActions";
@@ -9,10 +10,10 @@ import { formatFCFA } from "@/lib/format";
 import type { ProductWithVariants } from "@/lib/catalog";
 
 const guarantees = [
-  { label: "Livraison", value: "24 h à Dakar" },
-  { label: "Paiement", value: "À la livraison ou Mobile Money" },
-  { label: "Garantie", value: "Défauts de fabrication" },
-  { label: "Origine", value: "Produit authentique" },
+  { icon: Truck, label: "Livraison", value: "24 h à Dakar" },
+  { icon: Wallet, label: "Paiement", value: "À la livraison ou Mobile Money" },
+  { icon: ShieldCheck, label: "Garantie", value: "Défauts de fabrication" },
+  { icon: BadgeCheck, label: "Origine", value: "Produit authentique" },
 ];
 
 export function ProductDetailView({ product }: { product: ProductWithVariants }) {
@@ -187,7 +188,10 @@ export function ProductDetailView({ product }: { product: ProductWithVariants })
         <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[20px] border border-line bg-line">
           {guarantees.map((g) => (
             <div key={g.label} className="bg-white p-4">
-              <dt className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">{g.label}</dt>
+              <dt className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">
+                <g.icon className="h-4 w-4 text-accent" strokeWidth={1.8} />
+                {g.label}
+              </dt>
               <dd className="mt-1 text-[13.5px] font-medium text-ink">{g.value}</dd>
             </div>
           ))}
