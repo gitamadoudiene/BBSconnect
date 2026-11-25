@@ -9,13 +9,18 @@ import { Logo } from "@/components/ui/Logo";
 import { CartCount, WishlistCount } from "./CartBadge";
 import type { SessionPayload } from "@/lib/session";
 
-type Category = { id: string; name: string; slug: string };
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  children: { id: string; name: string; slug: string }[];
+};
 
 const navLinks = [
-  { label: "Accueil", href: "/" },
-  { label: "iPhone", href: "/boutique", hasDropdown: true },
-  { label: "Collections", href: "/#collections" },
-  { label: "Accessoires", href: "/boutique?categorie=accessoires" },
+  { label: "Boutique", href: "/boutique", hasDropdown: true },
+  { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple" },
+  { label: "Samsung", href: "/boutique?marque=samsung" },
+  { label: "Offres", href: "/boutique?deals=1" },
   { label: "À propos", href: "/a-propos" },
   { label: "Contact", href: "/contact" },
 ];
@@ -29,7 +34,7 @@ export function HeaderClient({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [iphoneOpen, setIphoneOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
@@ -119,24 +124,41 @@ export function HeaderClient({
                 <div
                   key={link.href}
                   className="relative"
-                  onMouseEnter={() => setIphoneOpen(true)}
-                  onMouseLeave={() => setIphoneOpen(false)}
+                  onMouseEnter={() => setShopOpen(true)}
+                  onMouseLeave={() => setShopOpen(false)}
                 >
                   <Link href={link.href} className="flex items-center gap-1 py-2 link-underline">
                     {link.label}
                     <ChevronDown className="h-3.5 w-3.5 text-slate" />
                   </Link>
-                  {iphoneOpen && (
-                    <div className="glass absolute left-1/2 top-full w-56 -translate-x-1/2 rounded-2xl p-2">
-                      {categories.map((cat) => (
-                        <Link
-                          key={cat.id}
-                          href={`/boutique?categorie=${cat.slug}`}
-                          className="block rounded-lg px-3 py-2 text-sm text-ink transition hover:bg-white/70"
-                        >
-                          {cat.name}
-                        </Link>
-                      ))}
+                  {shopOpen && (
+                    <div className="absolute left-0 top-full pt-3">
+                      <div className="glass grid w-[min(760px,80vw)] grid-cols-3 gap-x-6 gap-y-5 rounded-3xl p-6">
+                        {categories.map((cat) => (
+                          <div key={cat.id}>
+                            <Link
+                              href={`/boutique?categorie=${cat.slug}`}
+                              className="text-[13px] font-bold text-ink hover:text-accent"
+                            >
+                              {cat.name}
+                            </Link>
+                            {cat.children.length > 0 && (
+                              <ul className="mt-2 space-y-1">
+                                {cat.children.map((child) => (
+                                  <li key={child.id}>
+                                    <Link
+                                      href={`/boutique?categorie=${child.slug}`}
+                                      className="block text-[13px] text-slate transition hover:text-ink"
+                                    >
+                                      {child.name}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -195,7 +217,7 @@ export function HeaderClient({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 type="search"
-                placeholder="Rechercher un iPhone, un accessoire…"
+                placeholder="Rechercher un iPhone, un Galaxy, une console…"
                 className="w-full bg-transparent text-base text-ink outline-none placeholder:text-slate"
               />
               <button type="submit" className="btn btn-primary hidden sm:inline-flex">
@@ -254,7 +276,7 @@ export function HeaderClient({
           </nav>
 
           <div className="mt-4 border-t border-line pt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate">Catégories</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate">Univers</p>
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <Link

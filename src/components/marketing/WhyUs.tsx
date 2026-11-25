@@ -12,7 +12,7 @@ const points = [
   {
     icon: GraduationCap,
     title: "Expertise",
-    text: "Une équipe qui connaît réellement les produits Apple et vous conseille avec précision.",
+    text: "Une équipe qui connaît réellement Apple, Samsung et la tech, et vous conseille avec précision.",
   },
   {
     icon: ShieldCheck,
@@ -34,7 +34,7 @@ export function WhyUs() {
           <div className="relative aspect-[4/5] overflow-hidden rounded-[28px] bg-mist lg:aspect-[5/6]">
             <Image
               src={images.whyUsLifestyle}
-              alt="Utilisation d'un iPhone dans un environnement moderne et minimaliste"
+              alt="Smartphone et ordinateur dans un espace de travail moderne"
               fill
               sizes="(min-width: 1024px) 40vw, 90vw"
               className="object-cover"
@@ -46,7 +46,7 @@ export function WhyUs() {
           <Reveal>
             <p className="text-eyebrow text-slate">Pourquoi BBS Connect</p>
             <h2 className="text-h2 mt-4 max-w-md text-ink">
-              Une autre façon d&apos;acheter votre iPhone.
+              Une autre façon d&apos;acheter votre tech.
             </h2>
           </Reveal>
 

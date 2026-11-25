@@ -441,3 +441,180 @@ body {
     transition: none;
   }
 }
+
+/* ======================================================================
+   Hero stage — dark, immersive, multi-brand
+   ====================================================================== */
+
+.hero-title {
+  font-size: clamp(3rem, 6.2vw + 0.5rem, 7.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+}
+
+.hero-gradient-text {
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 6s ease-in-out infinite alternate;
+}
+
+@keyframes gradient-pan {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+/* Soft halos drawn as radial gradients (no filter: blur — Chrome clips large
+   blurs at layer bounds, which shows hard rectangular edges). The colour comes
+   from `color`, animated by framer-motion. */
+.hero-blob {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, currentColor, transparent);
+  opacity: 0.5;
+}
+
+.hero-blob-a {
+  width: 70vw;
+  height: 70vw;
+  left: -24vw;
+  top: -30vw;
+  animation: blob-drift-a 18s ease-in-out infinite alternate;
+}
+
+.hero-blob-b {
+  width: 60vw;
+  height: 60vw;
+  right: -20vw;
+  top: 8%;
+  opacity: 0.42;
+  animation: blob-drift-b 22s ease-in-out infinite alternate;
+}
+
+.hero-blob-c {
+  width: 56vw;
+  height: 56vw;
+  left: 20%;
+  bottom: -32vw;
+  opacity: 0.32;
+  animation: blob-drift-c 20s ease-in-out infinite alternate;
+}
+
+@keyframes blob-drift-a {
+  to { transform: translate3d(8vw, 6vw, 0) scale(1.15); }
+}
+@keyframes blob-drift-b {
+  to { transform: translate3d(-10vw, 8vw, 0) scale(0.9); }
+}
+@keyframes blob-drift-c {
+  to { transform: translate3d(6vw, -8vw, 0) scale(1.2); }
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent 75%);
+}
+
+.hero-grain {
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.hero-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.95rem 1.75rem;
+  font-size: 14px;
+  font-weight: 700;
+  color: #05060a;
+  background: #fff;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), color 300ms ease;
+}
+
+.hero-cta:hover {
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+.hero-cta-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 350ms ease;
+}
+
+.hero-cta:hover .hero-cta-glow {
+  opacity: 1;
+}
+
+.hero-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  background: rgba(13, 15, 22, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 40px -12px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px) saturate(160%);
+  animation: float-y 5s ease-in-out infinite;
+}
+
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.28);
+  transition: -webkit-text-stroke-color 300ms ease;
+}
+
+.text-outline:hover {
+  -webkit-text-stroke-color: rgba(255, 255, 255, 0.85);
+}
+
+.hero-marquee {
+  animation: marquee 38s linear infinite;
+}
+
+.hero-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Horizontal product rail (home sections) */
+.rail {
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail > * {
+  scroll-snap-align: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-blob,
+  .hero-marquee,
+  .hero-chip,
+  .hero-gradient-text {
+    animation: none;
+  }
+}

@@ -40,6 +40,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           name: product.name,
           slug: product.slug,
           categoryId: product.categoryId,
+          brand: product.brand,
           description: product.description,
           specs: product.specs,
           featured: product.featured,

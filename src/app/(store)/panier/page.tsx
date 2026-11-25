@@ -26,7 +26,7 @@ export default function CartPage() {
         <ShoppingBag className="mb-4 h-14 w-14 text-slate/40" strokeWidth={1.25} />
         <h1 className="text-h3 text-ink">Votre panier est vide</h1>
         <p className="mt-2 text-sm text-slate">
-          Parcourez la boutique pour trouver l&apos;iPhone qu&apos;il vous faut.
+          Parcourez la boutique pour trouver le produit qu&apos;il vous faut.
         </p>
         <Link href="/boutique" className="btn btn-primary mt-6">
           Voir la boutique

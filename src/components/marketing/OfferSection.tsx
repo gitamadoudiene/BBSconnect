@@ -12,13 +12,13 @@ export function OfferSection() {
             Offres de la semaine
           </span>
           <h2 className="text-h1 mt-6 text-white">
-            Votre prochain iPad
+            Votre prochaine pépite tech
             <br />
             est peut-être ici.
           </h2>
           <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/60">
-            Profitez de nos offres disponibles cette semaine, sur une sélection d&apos;iPhone
-            soigneusement choisie.
+            Profitez de nos offres disponibles cette semaine, sur une sélection d&apos;iPhone, de
+            Galaxy, d&apos;iPad et d&apos;accessoires soigneusement choisie.
           </p>
           <Link href="/boutique?deals=1" className="btn btn-inverse mt-9">
             Voir les offres <ArrowRight className="h-4 w-4" />

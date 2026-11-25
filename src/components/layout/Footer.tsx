@@ -10,7 +10,7 @@ export function Footer() {
           <div>
             <Logo dark />
             <p className="mt-6 max-w-xs text-[14px] leading-relaxed text-white/55">
-              Votre référence pour les iPhone et produits Apple au Sénégal — sélection
+              Votre référence tech au Sénégal : iPhone, Samsung Galaxy, iPad, audio et gaming. Sélection
               rigoureuse, expertise produit et accompagnement après-vente.
             </p>
             <div className="mt-6 flex gap-3">
@@ -35,7 +35,9 @@ export function Footer() {
           <div>
             <h3 className="text-eyebrow mb-6 text-white/45">Shop</h3>
             <ul className="space-y-3.5 text-[14px] text-white/70">
-              <li><Link href="/boutique" className="link-underline">iPhone</Link></li>
+              <li><Link href="/boutique?categorie=smartphones" className="link-underline">Smartphones</Link></li>
+              <li><Link href="/boutique?marque=samsung" className="link-underline">Samsung Galaxy</Link></li>
+              <li><Link href="/boutique?categorie=gaming" className="link-underline">Gaming & Drones</Link></li>
               <li><Link href="/boutique?deals=1" className="link-underline">Offres</Link></li>
               <li><Link href="/boutique?categorie=accessoires" className="link-underline">Accessoires</Link></li>
               <li><Link href="/boutique?tri=new" className="link-underline">Nouveautés</Link></li>

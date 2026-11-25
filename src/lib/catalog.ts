@@ -4,6 +4,17 @@ import type { Prisma } from "@prisma/client";
  * products stay visible in the dashboard only. */
 export const publishedFilter: Prisma.ProductWhereInput = { status: "PUBLISHED" };
 
+/** Matches products in a category OR in any of its sub-categories, so
+ * `?categorie=smartphones` returns every iPhone, Galaxy and Pixel. */
+export function categoryFilter(slug: string): Prisma.ProductWhereInput {
+  return { category: { OR: [{ slug }, { parent: { slug } }] } };
+}
+
+/** Case-insensitive brand match (`?marque=samsung`). */
+export function brandFilter(brand: string): Prisma.ProductWhereInput {
+  return { brand: { equals: brand, mode: "insensitive" } };
+}
+
 export const productWithVariantsInclude = {
   category: true,
   variants: {
@@ -32,6 +43,7 @@ export type ProductCardData = {
   id: string;
   name: string;
   slug: string;
+  brand?: string;
   categoryName?: string;
   variants: VariantCardData[];
 };
@@ -47,6 +59,7 @@ export function toProductCardData(product: ProductWithVariants): ProductCardData
     id: product.id,
     name: product.name,
     slug: product.slug,
+    brand: product.brand,
     categoryName: product.category?.name,
     variants: product.variants.map((v) => ({
       id: v.id,

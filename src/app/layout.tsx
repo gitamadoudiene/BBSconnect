@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BBSconnect | Boutique iPhone au Sénégal",
+  title: "BBS Connect | iPhone, Samsung Galaxy & high-tech au Sénégal",
   description:
-    "BBSconnect, votre boutique en ligne pour acheter des iPhone et accessoires au meilleur prix, livraison partout au Sénégal.",
+    "BBS Connect, votre boutique high-tech au Sénégal : iPhone, Samsung Galaxy, iPad, MacBook, audio, gaming et accessoires authentiques, livrés partout au Sénégal.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

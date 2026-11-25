@@ -4,7 +4,7 @@ import { AboutLogoMark } from "@/components/marketing/AboutLogoMark";
 const values = [
   { icon: Truck, title: "Livraison partout", text: "Nous livrons dans toutes les régions du Sénégal, rapidement et en toute sécurité." },
   { icon: BadgeCheck, title: "99% de satisfaction", text: "Des milliers de clients satisfaits et un service après-vente réactif." },
-  { icon: RefreshCcw, title: "Garantie produits", text: "Tous nos iPhone sont vérifiés et garantis contre les défauts de fabrication." },
+  { icon: RefreshCcw, title: "Garantie produits", text: "Tous nos produits sont vérifiés et garantis contre les défauts de fabrication." },
   { icon: CreditCard, title: "Paiement sécurisé", text: "Paiement à la livraison, Mobile Money ou carte bancaire, en toute confiance." },
   { icon: ShieldCheck, title: "Qualité garantie", text: "Nous sélectionnons uniquement des produits authentiques et de qualité." },
 ];
@@ -20,9 +20,9 @@ export default function AboutPage() {
               Le meilleur de la technologie, pensé pour vous
             </h1>
             <p className="mt-4 text-brand-navy/70">
-              BBSconnect est une boutique en ligne dédiée à la vente d&apos;iPhone et
-              d&apos;accessoires au Sénégal. Notre mission : rendre la technologie Apple
-              accessible avec des prix justes, un service fiable et une livraison rapide
+              BBSconnect est une boutique en ligne dédiée à la high-tech au Sénégal : iPhone,
+              Samsung Galaxy, iPad, MacBook, audio, gaming et accessoires. Notre mission :
+              rendre les dernières technologies accessibles avec des prix justes, un service fiable et une livraison rapide
               partout dans le pays.
             </p>
           </div>

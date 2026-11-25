@@ -38,6 +38,7 @@ type DefaultValues = {
   name?: string;
   slug?: string;
   categoryId?: string;
+  brand?: string;
   description?: string;
   specs?: string;
   featured?: boolean;
@@ -202,6 +203,22 @@ export function ProductForm({
                   </option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-[13px] font-medium text-db-text">Marque *</label>
+              <input
+                name="brand"
+                required
+                list="brand-options"
+                placeholder="ex : Apple, Samsung, Sony"
+                defaultValue={defaultValues?.brand ?? "Apple"}
+                className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+              />
+              <datalist id="brand-options">
+                {["Apple", "Samsung", "Google", "Sony", "DJI", "Nintendo", "Xiaomi", "JBL", "Anker"].map((b) => (
+                  <option key={b} value={b} />
+                ))}
+              </datalist>
             </div>
             <div>
               <label className="mb-1 block text-[13px] font-medium text-db-text">Tags</label>

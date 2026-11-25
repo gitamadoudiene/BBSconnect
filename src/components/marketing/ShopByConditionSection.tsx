@@ -7,16 +7,16 @@ import { images } from "@/lib/images";
 const options = [
   {
     badge: "NEUF",
-    title: "iPhone scellés",
-    text: "Sous blister, garantie constructeur complète.",
+    title: "Neuf scellé",
+    text: "iPhone, Galaxy, consoles : sous blister, garantie constructeur.",
     href: "/boutique",
     image: images.sealedBox,
     dark: true,
   },
   {
     badge: "VALEUR SÛRE",
-    title: "iPhone reconditionnés",
-    text: "Contrôlés et garantis, à prix plus doux.",
+    title: "Reconditionnés",
+    text: "Smartphones contrôlés et garantis, à prix plus doux.",
     href: "/boutique?deals=1",
     image: images.refurbished,
     dark: false,
