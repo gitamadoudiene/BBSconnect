@@ -32,6 +32,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
           description: category.description ?? undefined,
           image: category.image,
           parentId: category.parentId,
+          brand: category.brand,
           active: category.active,
         }}
       />

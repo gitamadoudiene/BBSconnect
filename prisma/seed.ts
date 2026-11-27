@@ -62,24 +62,34 @@ const stock = {
  * their sub-categories (iPhone 17, Galaxy S, iPad, …). Parents must be listed
  * before their children — the seed upserts them in this order.
  */
-type SeedCategory = { name: string; slug: string; position: number; parent?: string; description?: string };
+type SeedCategory = { name: string; slug: string; position: number; parent?: string; description?: string; brand?: string };
 
 const categories: SeedCategory[] = [
   { name: "Smartphones", slug: "smartphones", position: 0, description: "iPhone, Samsung Galaxy, Google Pixel — les derniers flagships." },
   { name: "Accessoires", slug: "accessoires", position: 1, description: "Coques, chargeurs, câbles, écouteurs et protections." },
 
-  { name: "iPhone 17", slug: "iphone-17", position: 0, parent: "smartphones" },
-  { name: "iPhone 16", slug: "iphone-16", position: 1, parent: "smartphones" },
-  { name: "iPhone 15", slug: "iphone-15", position: 2, parent: "smartphones" },
-  { name: "iPhone 14", slug: "iphone-14", position: 3, parent: "smartphones" },
-  { name: "iPhone 13", slug: "iphone-13", position: 4, parent: "smartphones" },
-  { name: "iPhone 12", slug: "iphone-12", position: 5, parent: "smartphones" },
-  { name: "iPhone 11", slug: "iphone-11", position: 6, parent: "smartphones" },
-  { name: "iPhone X", slug: "iphone-x", position: 7, parent: "smartphones" },
-  { name: "Galaxy S", slug: "galaxy-s", position: 10, parent: "smartphones" },
-  { name: "Galaxy Z", slug: "galaxy-z", position: 11, parent: "smartphones" },
-  { name: "Galaxy A", slug: "galaxy-a", position: 12, parent: "smartphones" },
-  { name: "Google Pixel", slug: "google-pixel", position: 13, parent: "smartphones" },
+  { name: "iPhone 17", slug: "iphone-17", position: 0, parent: "smartphones", brand: "Apple" },
+  { name: "iPhone 16", slug: "iphone-16", position: 1, parent: "smartphones", brand: "Apple" },
+  { name: "iPhone 15", slug: "iphone-15", position: 2, parent: "smartphones", brand: "Apple" },
+  { name: "iPhone 14", slug: "iphone-14", position: 3, parent: "smartphones", brand: "Apple" },
+  { name: "iPhone 13", slug: "iphone-13", position: 4, parent: "smartphones", brand: "Apple" },
+  { name: "iPhone 12", slug: "iphone-12", position: 5, parent: "smartphones", brand: "Apple" },
+  { name: "iPhone 11", slug: "iphone-11", position: 6, parent: "smartphones", brand: "Apple" },
+  { name: "iPhone X", slug: "iphone-x", position: 7, parent: "smartphones", brand: "Apple" },
+  { name: "Galaxy S", slug: "galaxy-s", position: 10, parent: "smartphones", brand: "Samsung" },
+  { name: "Galaxy Z", slug: "galaxy-z", position: 11, parent: "smartphones", brand: "Samsung" },
+  { name: "Galaxy A", slug: "galaxy-a", position: 12, parent: "smartphones", brand: "Samsung" },
+  { name: "Google Pixel", slug: "google-pixel", position: 13, parent: "smartphones", brand: "Google" },
+  { name: "Tecno Camon", slug: "tecno-camon", position: 20, parent: "smartphones", brand: "Tecno" },
+  { name: "Tecno Spark", slug: "tecno-spark", position: 21, parent: "smartphones", brand: "Tecno" },
+  { name: "Tecno Pova", slug: "tecno-pova", position: 22, parent: "smartphones", brand: "Tecno" },
+  { name: "Huawei Pura", slug: "huawei-pura", position: 30, parent: "smartphones", brand: "Huawei" },
+  { name: "Huawei nova", slug: "huawei-nova", position: 31, parent: "smartphones", brand: "Huawei" },
+  { name: "Huawei Mate", slug: "huawei-mate", position: 32, parent: "smartphones", brand: "Huawei" },
+
+  { name: "Coques & protection", slug: "coques-protection", position: 0, parent: "accessoires" },
+  { name: "Charge & énergie", slug: "charge-energie", position: 1, parent: "accessoires" },
+  { name: "Écouteurs & audio", slug: "ecouteurs-audio", position: 2, parent: "accessoires" },
 ];
 
 type SeedImage = { url: string; type: ImageType; position: number; alt?: string };
@@ -726,7 +736,7 @@ const products: SeedProduct[] = [
   {
     name: "Coque silicone MagSafe",
     slug: "coque-silicone-magsafe",
-    category: "Accessoires",
+    category: "Coques & protection",
     description: "Coque en silicone doux compatible MagSafe, protection intégrale pour votre iPhone.",
     specs: "Compatibilité : iPhone 11 à 17\nMatière : silicone souche\nCompatible MagSafe : oui",
     variants: [
@@ -743,7 +753,7 @@ const products: SeedProduct[] = [
   {
     name: "Chargeur secteur 20W USB-C",
     slug: "chargeur-secteur-20w-usb-c",
-    category: "Accessoires",
+    category: "Charge & énergie",
     description: "Adaptateur secteur USB-C 20W pour une charge rapide de votre iPhone.",
     specs: "Puissance : 20W\nPort : USB-C\nCharge rapide : oui",
     variants: [
@@ -760,7 +770,7 @@ const products: SeedProduct[] = [
   {
     name: "Câble USB-C vers Lightning",
     slug: "cable-usb-c-lightning-1m",
-    category: "Accessoires",
+    category: "Charge & énergie",
     description: "Câble tressé USB-C vers Lightning, 1 mètre, charge et synchronisation rapides.",
     specs: "Longueur : 1 m\nConnecteurs : USB-C / Lightning\nTressé : oui",
     variants: [
@@ -778,7 +788,7 @@ const products: SeedProduct[] = [
     name: "Écouteurs sans fil Pro",
     slug: "ecouteurs-sans-fil-pro",
     brand: "BBS Connect",
-    category: "Accessoires",
+    category: "Écouteurs & audio",
     featured: true,
     description: "Écouteurs sans fil avec réduction de bruit active et boîtier de charge MagSafe.",
     specs: "Autonomie : 6h (24h avec boîtier)\nRéduction de bruit active : oui\nBluetooth : 5.3",
@@ -798,7 +808,7 @@ const products: SeedProduct[] = [
     name: "Protection écran verre trempé",
     slug: "protection-ecran-verre-trempe",
     brand: "BBS Connect",
-    category: "Accessoires",
+    category: "Coques & protection",
     description: "Verre trempé anti-rayures, dureté 9H, pose facile sans bulle.",
     specs: "Dureté : 9H\nAnti-traces de doigts : oui\nCompatibilité : iPhone 11 à 17",
     variants: [
@@ -815,7 +825,7 @@ const products: SeedProduct[] = [
   {
     name: "Batterie externe 10000mAh",
     slug: "batterie-externe-10000mah",
-    category: "Accessoires",
+    category: "Charge & énergie",
     description: "Powerbank 10000mAh avec charge rapide USB-C, idéale pour vos déplacements.",
     specs: "Capacité : 10000 mAh\nPorts : USB-C, USB-A\nCharge rapide : 18W",
     variants: [
@@ -1068,7 +1078,7 @@ const products: SeedProduct[] = [
     name: "AirPods Pro 3",
     slug: "airpods-pro-3",
     brand: "Apple",
-    category: "Accessoires",
+    category: "Écouteurs & audio",
     featured: true,
     description:
       "La meilleure réduction de bruit jamais vue sur des AirPods, le suivi de la fréquence cardiaque et la traduction en direct. Un son immersif, partout.",
@@ -1089,7 +1099,7 @@ const products: SeedProduct[] = [
     name: "Galaxy Buds3 Pro",
     slug: "galaxy-buds3-pro",
     brand: "Samsung",
-    category: "Accessoires",
+    category: "Écouteurs & audio",
     description:
       "Design lame lumineuse, son Hi-Fi 24 bits et réduction de bruit intelligente : les Galaxy Buds3 Pro sont pensés pour l'écosystème Galaxy.",
     specs:
@@ -1119,6 +1129,7 @@ async function main() {
       name: cat.name,
       position: cat.position,
       parentId,
+      brand: cat.brand ?? null,
       ...(cat.description ? { description: cat.description } : {}),
     };
     const saved = await prisma.category.upsert({

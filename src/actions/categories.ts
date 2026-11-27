@@ -13,6 +13,7 @@ const categorySchema = z.object({
   description: z.string().optional(),
   image: z.string().optional(),
   parentId: z.string().optional(),
+  brand: z.string().trim().max(40).optional(),
   active: z.coerce.boolean().optional(),
 });
 
@@ -25,6 +26,7 @@ function parseForm(formData: FormData) {
     description: formData.get("description") || undefined,
     image: formData.get("image") || undefined,
     parentId: formData.get("parentId") || undefined,
+    brand: formData.get("brand") || undefined,
     active: formData.get("active") === "on",
   });
 }
@@ -58,13 +60,14 @@ export async function createCategoryAction(
       description: parsed.data.description || null,
       image: parsed.data.image || null,
       parentId: parsed.data.parentId || null,
+      brand: parsed.data.brand || null,
       active: parsed.data.active ?? true,
       position: count,
     },
   });
 
   revalidatePath("/dashboard/categories");
-  revalidatePath("/boutique");
+  revalidatePath("/", "layout");
   redirect("/dashboard/categories?created=1");
 }
 
@@ -94,12 +97,13 @@ export async function updateCategoryAction(
       description: parsed.data.description || null,
       image: parsed.data.image || null,
       parentId: parsed.data.parentId || null,
+      brand: parsed.data.brand || null,
       active: parsed.data.active ?? true,
     },
   });
 
   revalidatePath("/dashboard/categories");
-  revalidatePath("/boutique");
+  revalidatePath("/", "layout");
   redirect("/dashboard/categories?updated=1");
 }
 

@@ -7,26 +7,26 @@ const columns = [
     title: "Téléphones",
     links: [
       { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple" },
-      { label: "Samsung Galaxy", href: "/boutique?marque=samsung" },
-      { label: "Google Pixel", href: "/boutique?marque=google" },
+      { label: "Android", href: "/boutique?categorie=smartphones&os=android" },
+      { label: "Samsung Galaxy", href: "/boutique?categorie=smartphones&marque=samsung" },
       { label: "Offres du moment", href: "/boutique?deals=1" },
     ],
   },
   {
     title: "Accessoires",
     links: [
-      { label: "Coques & protections", href: "/boutique?categorie=accessoires&q=coque" },
-      { label: "Chargeurs & câbles", href: "/boutique?categorie=accessoires&q=charg" },
-      { label: "Écouteurs", href: "/boutique?categorie=accessoires&q=couteurs" },
+      { label: "Coques & protection", href: "/boutique?categorie=coques-protection" },
+      { label: "Charge & énergie", href: "/boutique?categorie=charge-energie" },
+      { label: "Écouteurs & audio", href: "/boutique?categorie=ecouteurs-audio" },
       { label: "Tous les accessoires", href: "/boutique?categorie=accessoires" },
     ],
   },
   {
-    title: "Aide",
+    title: "BBS Connect",
     links: [
+      { label: "À propos", href: "/a-propos" },
       { label: "Suivre ma commande", href: "/compte" },
       { label: "Livraison & paiement", href: "/contact" },
-      { label: "Garantie", href: "/a-propos" },
       { label: "Nous contacter", href: "/contact" },
     ],
   },

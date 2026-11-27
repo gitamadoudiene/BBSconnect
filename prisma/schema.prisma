@@ -76,6 +76,8 @@ model Category {
   image       String?
   position    Int      @default(0)
   active      Boolean  @default(true)
+  /// Brand of a phone range (Samsung, Tecno…) — groups the mega-menu columns.
+  brand       String?
   createdAt   DateTime @default(now())
 
   parentId String?

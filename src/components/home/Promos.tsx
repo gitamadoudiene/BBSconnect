@@ -65,10 +65,10 @@ function AppleGlyph({ className }: { className?: string }) {
 
 const shortcuts = [
   { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple", icon: "apple" as const },
-  { label: "Samsung", href: "/boutique?marque=samsung", icon: Smartphone },
-  { label: "Pixel", href: "/boutique?marque=google", icon: Smartphone },
-  { label: "Écouteurs", href: "/boutique?categorie=accessoires&q=pro", icon: Headphones },
-  { label: "Accessoires", href: "/boutique?categorie=accessoires", icon: ShieldCheck },
+  { label: "Android", href: "/boutique?categorie=smartphones&os=android", icon: Smartphone },
+  { label: "Samsung", href: "/boutique?categorie=smartphones&marque=samsung", icon: Smartphone },
+  { label: "Écouteurs", href: "/boutique?categorie=ecouteurs-audio", icon: Headphones },
+  { label: "Coques", href: "/boutique?categorie=coques-protection", icon: ShieldCheck },
   { label: "Offres", href: "/boutique?deals=1", icon: BadgePercent },
   { label: "Petit budget", href: "/boutique?categorie=smartphones&prix=0-250000", icon: CreditCard },
 ];

@@ -12,6 +12,7 @@ type DefaultValues = {
   description?: string;
   image?: string | null;
   parentId?: string | null;
+  brand?: string | null;
   active?: boolean;
 };
 
@@ -72,6 +73,25 @@ export function CategoryForm({
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
+          </div>
+          <div>
+            <label htmlFor="brand" className="field-label">Marque (gammes de téléphones)</label>
+            <input
+              id="brand"
+              name="brand"
+              list="category-brands"
+              defaultValue={defaultValues?.brand ?? ""}
+              placeholder="Samsung, Tecno, Huawei…"
+              className="field field-sm"
+            />
+            <datalist id="category-brands">
+              {["Apple", "Samsung", "Tecno", "Huawei", "Google", "Xiaomi", "Infinix"].map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+            <p className="mt-1.5 text-[12px] text-slate">
+              Range la gamme dans la bonne colonne du menu (iPhone ou Android). Laissez vide pour les accessoires.
+            </p>
           </div>
           <div>
             <label className="field-label">Image</label>

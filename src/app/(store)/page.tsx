@@ -76,8 +76,8 @@ export default async function HomePage() {
 
   const brands: BrandRow[] = [
     { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple", ...stats(apple) },
-    { label: "Galaxy", href: "/boutique?marque=samsung", ...stats(samsung) },
-    { label: "Pixel", href: "/boutique?marque=google", ...stats(google) },
+    { label: "Galaxy", href: "/boutique?categorie=smartphones&marque=samsung", ...stats(samsung) },
+    { label: "Pixel", href: "/boutique?categorie=smartphones&marque=google", ...stats(google) },
   ].filter((b) => b.count > 0);
 
   const accessoryRow: BrandRow = {

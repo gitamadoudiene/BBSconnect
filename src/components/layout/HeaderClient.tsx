@@ -8,30 +8,20 @@ import clsx from "clsx";
 import { Logo } from "@/components/ui/Logo";
 import { CartCount, WishlistCount } from "./CartBadge";
 import type { SessionPayload } from "@/lib/session";
+import { MegaPanel, MobileMegaMenu, type NavMenu } from "./MegaMenu";
 
-export type NavSeries = { name: string; slug: string };
-
-type NavItem = {
-  label: string;
-  href: string;
-  /** which smartphone series belong under this entry */
-  match?: (slug: string) => boolean;
-};
-
-const nav: NavItem[] = [
-  { label: "iPhone", href: "/boutique?categorie=smartphones&marque=apple", match: (s) => s.startsWith("iphone") },
-  { label: "Samsung", href: "/boutique?marque=samsung", match: (s) => s.startsWith("galaxy") },
-  { label: "Google Pixel", href: "/boutique?marque=google" },
-  { label: "Accessoires", href: "/boutique?categorie=accessoires" },
+/** Plain links after the mega-menus. */
+const links = [
   { label: "Offres", href: "/boutique?deals=1" },
+  { label: "À propos", href: "/a-propos" },
 ];
 
 export function HeaderClient({
-  series,
+  menus,
   session,
   announcement,
 }: {
-  series: NavSeries[];
+  menus: NavMenu[];
   session: SessionPayload | null;
   announcement: string;
 }) {
@@ -48,6 +38,13 @@ export function HeaderClient({
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!openMenu) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenMenu(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openMenu]);
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const q = query.trim();
@@ -61,7 +58,7 @@ export function HeaderClient({
   }
 
   function scheduleClose() {
-    closeTimer.current = setTimeout(() => setOpenMenu(null), 120);
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 160);
   }
 
   const accountHref = session ? (session.role === "MERCHANT" ? "/dashboard" : "/compte") : "/connexion";
@@ -101,65 +98,36 @@ export function HeaderClient({
 
         <Logo />
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
-          {nav.map((item) => {
-            const items = item.match ? series.filter((s) => item.match!(s.slug)) : [];
-            if (items.length === 0) {
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="whitespace-nowrap rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors hover:bg-paper"
-                >
-                  {item.label}
-                </Link>
-              );
-            }
-            const isOpen = openMenu === item.label;
+        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Navigation principale">
+          {menus.map((menu) => {
+            const isOpen = openMenu === menu.key;
             return (
-              <div
-                key={item.label}
-                className="relative"
-                onMouseEnter={() => open(item.label)}
-                onMouseLeave={scheduleClose}
-              >
+              <div key={menu.key} onMouseEnter={() => open(menu.key)} onMouseLeave={scheduleClose}>
                 <button
                   className={clsx(
-                    "flex items-center gap-1 rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors",
+                    "flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors",
                     isOpen ? "bg-paper" : "hover:bg-paper"
                   )}
                   aria-expanded={isOpen}
-                  onClick={() => (isOpen ? setOpenMenu(null) : open(item.label))}
+                  aria-haspopup="true"
+                  onClick={() => (isOpen ? setOpenMenu(null) : open(menu.key))}
                 >
-                  {item.label}
+                  {menu.label}
                   <ChevronDown className={clsx("h-3.5 w-3.5 text-slate transition-transform", isOpen && "rotate-180")} />
                 </button>
-                {isOpen && (
-                  <div className="absolute left-0 top-full pt-2" onClick={() => setOpenMenu(null)}>
-                    <div className="w-[280px] rounded-[20px] border border-line bg-white p-2">
-                      <Link
-                        href={item.href}
-                        className="flex items-center justify-between rounded-xl px-3 py-2.5 text-[14px] font-semibold text-ink hover:bg-paper"
-                      >
-                        Tous les {item.label}
-                        <span className="font-mono text-[11px] text-slate">→</span>
-                      </Link>
-                      <div className="my-1 h-px bg-line" />
-                      {items.map((s) => (
-                        <Link
-                          key={s.slug}
-                          href={`/boutique?categorie=${s.slug}`}
-                          className="block rounded-xl px-3 py-2 text-[14px] text-ink-soft hover:bg-paper hover:text-ink"
-                        >
-                          {s.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {isOpen && <MegaPanel menu={menu} onNavigate={() => setOpenMenu(null)} />}
               </div>
             );
           })}
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="whitespace-nowrap rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors hover:bg-paper"
+            >
+              {l.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="ml-auto flex items-center gap-1">
@@ -244,26 +212,15 @@ export function HeaderClient({
             </form>
 
             <nav className="mt-6" aria-label="Navigation mobile">
-              {nav.map((item, i) => {
-                const items = item.match ? series.filter((s) => item.match!(s.slug)) : [];
-                return (
-                  <div key={item.label} className="border-b border-line py-4">
-                    <Link href={item.href} className="flex items-baseline justify-between">
-                      <span className="text-[26px] font-bold tracking-[-0.035em] text-ink">{item.label}</span>
-                      <span className="font-mono text-[11px] text-slate">0{i + 1}</span>
-                    </Link>
-                    {items.length > 0 && (
-                      <div className="rail mt-3 flex gap-2 overflow-x-auto">
-                        {items.map((s) => (
-                          <Link key={s.slug} href={`/boutique?categorie=${s.slug}`} className="chip">
-                            {s.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {menus.map((menu, i) => (
+                <MobileMegaMenu key={menu.key} menu={menu} index={i} />
+              ))}
+              {links.map((l, i) => (
+                <Link key={l.href} href={l.href} className="flex items-baseline justify-between border-b border-line py-4">
+                  <span className="text-[26px] font-bold tracking-[-0.035em] text-ink">{l.label}</span>
+                  <span className="font-mono text-[11px] text-slate">0{menus.length + i + 1}</span>
+                </Link>
+              ))}
             </nav>
 
             {session?.role === "MERCHANT" && (
