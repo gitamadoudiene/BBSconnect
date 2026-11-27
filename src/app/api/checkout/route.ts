@@ -21,6 +21,9 @@ const checkoutSchema = z.object({
       })
     )
     .min(1),
+  analytics: z
+    .object({ visitorId: z.string().regex(/^[a-zA-Z0-9-]{8,64}$/), sessionId: z.string().regex(/^[a-zA-Z0-9-]{8,64}$/) })
+    .optional(),
 });
 
 const paymentLabels: Record<string, string> = {
@@ -99,6 +102,21 @@ export async function POST(request: NextRequest) {
 
     return created;
   });
+
+  if (parsed.data.analytics && session?.role !== "MERCHANT") {
+    await prisma.analyticsEvent
+      .create({
+        data: {
+          type: "PURCHASE",
+          path: "/checkout",
+          ...parsed.data.analytics,
+          value: order.total,
+          device: /Mobi|Android|iPhone/i.test(request.headers.get("user-agent") ?? "") ? "mobile" : "desktop",
+          country: request.headers.get("x-vercel-ip-country")?.slice(0, 2) ?? null,
+        },
+      })
+      .catch(() => null);
+  }
 
   return NextResponse.json({ reference: order.reference });
 }

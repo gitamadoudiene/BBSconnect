@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatFCFA } from "@/lib/format";
 import { ProductRowActions } from "@/components/dashboard/ProductRowActions";
+import { EmptyState, Notice, PageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,9 @@ type SearchParams = Promise<{
 
 const statusLabels: Record<string, string> = { DRAFT: "Brouillon", PUBLISHED: "Publié", ARCHIVED: "Archivé" };
 const statusStyles: Record<string, string> = {
-  DRAFT: "bg-db-bg text-db-muted",
+  DRAFT: "bg-paper text-slate",
   PUBLISHED: "bg-db-success-tint text-db-success",
-  ARCHIVED: "bg-db-warning-tint text-db-warning",
+  ARCHIVED: "bg-signal-tint text-signal-deep",
 };
 
 export default async function DashboardProductsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -34,7 +35,7 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
   const categories = await prisma.category.findMany({ orderBy: { position: "asc" } });
 
   const where: Prisma.ProductWhereInput = {};
-  if (params.q) where.name = { contains: params.q };
+  if (params.q) where.OR = [{ name: { contains: params.q, mode: "insensitive" } }, { brand: { contains: params.q, mode: "insensitive" } }];
   if (params.categorie) where.categoryId = params.categorie;
   if (params.statut) where.status = params.statut as Prisma.EnumProductStatusFilter["equals"];
   if (params.stock === "low") where.variants = { some: { stock: { gt: 0, lte: 5 } } };
@@ -63,46 +64,38 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-[20px] font-semibold text-db-text">Produits</h1>
-          <p className="text-[13px] text-db-muted">{totalCount} produit{totalCount > 1 ? "s" : ""} au catalogue</p>
-        </div>
-        <Link
-          href="/dashboard/produits/nouveau"
-          className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-accent-deep"
-        >
+      <PageHeader
+        eyebrow="Catalogue"
+        title={params.stock === "low" ? "Stock faible" : "Produits"}
+        description={
+          params.stock === "low"
+            ? "Les produits dont au moins une variante passe sous 5 unités."
+            : `${totalCount} produit${totalCount > 1 ? "s" : ""} au catalogue · téléphones et accessoires`
+        }
+      >
+        <Link href="/dashboard/produits/nouveau" className="btn btn-primary btn-sm">
           <Plus className="h-4 w-4" /> Ajouter un produit
         </Link>
-      </div>
+      </PageHeader>
 
-      {banner && (
-        <div
-          className={clsx(
-            "mb-4 flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-[13px]",
-            banner.tone === "success" ? "border-db-success/20 bg-db-success-tint text-db-success" : "border-db-danger/20 bg-db-danger-tint text-db-danger"
-          )}
-        >
-          <banner.icon className="h-4 w-4 shrink-0" />
-          {banner.text}
-        </div>
-      )}
+      {banner && <Notice tone={banner.tone}>{banner.text}</Notice>}
 
-      <form className="mb-4 flex flex-wrap items-center gap-2">
+      <form className="mb-4 flex flex-wrap items-center gap-2" role="search">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-db-muted" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
           <input
             type="search"
             name="q"
             defaultValue={params.q}
             placeholder="Rechercher un produit…"
-            className="w-64 rounded-lg border border-db-border py-2 pl-9 pr-3 text-[13px] outline-none focus:border-accent"
+            aria-label="Rechercher un produit"
+            className="field field-sm w-64 pl-10"
           />
         </div>
         <select
           name="categorie"
           defaultValue={params.categorie}
-          className="rounded-lg border border-db-border px-3 py-2 text-[13px] text-db-text outline-none focus:border-accent"
+          className="field field-sm w-auto"
         >
           <option value="">Toutes catégories</option>
           {categories.map((c) => (
@@ -112,7 +105,7 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
         <select
           name="stock"
           defaultValue={params.stock}
-          className="rounded-lg border border-db-border px-3 py-2 text-[13px] text-db-text outline-none focus:border-accent"
+          className="field field-sm w-auto"
         >
           <option value="">Tout stock</option>
           <option value="low">Stock faible</option>
@@ -121,60 +114,51 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
         <select
           name="statut"
           defaultValue={params.statut}
-          className="rounded-lg border border-db-border px-3 py-2 text-[13px] text-db-text outline-none focus:border-accent"
+          className="field field-sm w-auto"
         >
           <option value="">Tout statut</option>
           <option value="DRAFT">Brouillon</option>
           <option value="PUBLISHED">Publié</option>
           <option value="ARCHIVED">Archivé</option>
         </select>
-        <button type="submit" className="rounded-lg border border-db-border px-3.5 py-2 text-[13px] font-medium text-db-text transition hover:border-ink">
+        <button type="submit" className="btn btn-secondary btn-sm">
           Filtrer
         </button>
         {hasFilters && (
-          <Link href="/dashboard/produits" className="text-[12.5px] font-medium text-db-muted hover:text-db-text">
+          <Link href="/dashboard/produits" className="text-[13px] font-medium text-slate underline-offset-4 hover:text-ink hover:underline">
             Réinitialiser
           </Link>
         )}
       </form>
 
-      <div className="overflow-hidden rounded-xl border border-db-border bg-db-card">
+      <div className="overflow-hidden db-card">
         {products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            {hasFilters ? (
-              <>
-                <Search className="mb-3 h-9 w-9 text-db-muted" strokeWidth={1.5} />
-                <p className="text-[14px] font-medium text-db-text">Aucun produit ne correspond à ces filtres</p>
-                <Link href="/dashboard/produits" className="mt-3 text-[13px] font-semibold text-accent hover:underline">
-                  Réinitialiser les filtres
-                </Link>
-              </>
-            ) : (
-              <>
-                <Package className="mb-3 h-9 w-9 text-db-muted" strokeWidth={1.5} />
-                <p className="text-[14px] font-medium text-db-text">Votre catalogue est encore vide</p>
-                <p className="mt-1 text-[13px] text-db-muted">Ajoutez votre premier produit pour commencer à vendre.</p>
-                <Link
-                  href="/dashboard/produits/nouveau"
-                  className="mt-4 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-accent-deep"
-                >
-                  Ajouter mon premier produit
-                </Link>
-              </>
-            )}
-          </div>
+          hasFilters ? (
+            <EmptyState
+              icon={Search}
+              title="Aucun produit ne correspond à ces filtres"
+              action={<Link href="/dashboard/produits" className="btn btn-secondary btn-sm">Réinitialiser les filtres</Link>}
+            />
+          ) : (
+            <EmptyState
+              icon={Package}
+              title="Votre catalogue est encore vide"
+              text="Ajoutez votre premier téléphone pour commencer à vendre."
+              action={<Link href="/dashboard/produits/nouveau" className="btn btn-primary btn-sm"><Plus className="h-4 w-4" /> Ajouter un produit</Link>}
+            />
+          )
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-db-border bg-db-bg text-left text-[11px] uppercase tracking-wide text-db-muted">
-                  <th className="p-3">Produit</th>
-                  <th className="p-3">Catégorie</th>
-                  <th className="p-3">Prix</th>
-                  <th className="p-3">Stock</th>
-                  <th className="p-3">Statut</th>
-                  <th className="p-3">Modifié</th>
-                  <th className="p-3 text-right">Actions</th>
+                <tr className="border-b border-line bg-paper/60 text-left">
+                  <th className="db-th px-4 py-3">Produit</th>
+                  <th className="db-th px-4 py-3">Catégorie</th>
+                  <th className="db-th px-4 py-3">Prix</th>
+                  <th className="db-th px-4 py-3">Stock</th>
+                  <th className="db-th px-4 py-3">Statut</th>
+                  <th className="db-th px-4 py-3">Modifié</th>
+                  <th className="db-th px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -189,12 +173,12 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
                     p.variants[0]?.images.find((i) => i.type === "PRIMARY")?.url ?? p.variants[0]?.images[0]?.url;
 
                   return (
-                    <tr key={p.id} className="border-b border-db-border/70 last:border-0 hover:bg-db-bg/50">
-                      <td className="p-3">
+                    <tr key={p.id} className="border-b border-line last:border-0 hover:bg-paper/50">
+                      <td className="px-4 py-3.5">
                         <Link href={`/dashboard/produits/${p.id}`} className="flex items-center gap-3">
-                          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-db-bg">
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[12px] bg-paper">
                             {primaryImage ? (
-                              <Image src={primaryImage} alt={p.name} fill sizes="44px" className="object-cover" />
+                              <Image src={primaryImage} alt={p.name} fill sizes="48px" className="object-contain p-1" />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center">
                                 <ImageOff className="h-4 w-4 text-db-muted" />
@@ -202,16 +186,16 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="line-clamp-1 font-medium text-db-text">{p.name}</p>
-                            <p className="text-[11.5px] text-db-muted">{p.variants.length} variante{p.variants.length > 1 ? "s" : ""}</p>
+                            <p className="line-clamp-1 font-semibold tracking-[-0.01em] text-ink">{p.name}</p>
+                            <p className="font-mono text-[11px] text-slate">{p.brand} · {p.variants.length} variante{p.variants.length > 1 ? "s" : ""}</p>
                           </div>
                         </Link>
                       </td>
-                      <td className="p-3 text-db-muted">{p.category.name}</td>
-                      <td className="p-3 font-medium text-db-text">
+                      <td className="px-4 py-3.5 text-db-muted">{p.category.name}</td>
+                      <td className="tabular whitespace-nowrap px-4 py-3.5 font-medium text-ink">
                         {minPrice === maxPrice ? formatFCFA(minPrice) : `${formatFCFA(minPrice)} – ${formatFCFA(maxPrice)}`}
                       </td>
-                      <td className="p-3">
+                      <td className="px-4 py-3.5">
                         <span
                           className={clsx(
                             "inline-flex items-center gap-1.5 text-[12.5px] font-medium",
@@ -222,15 +206,15 @@ export default async function DashboardProductsPage({ searchParams }: { searchPa
                           {totalStock}
                         </span>
                       </td>
-                      <td className="p-3">
-                        <span className={clsx("rounded-full px-2.5 py-1 text-[11px] font-semibold", statusStyles[p.status])}>
+                      <td className="px-4 py-3.5">
+                        <span className={clsx("badge", statusStyles[p.status])}>
                           {statusLabels[p.status]}
                         </span>
                       </td>
-                      <td className="p-3 text-[12px] text-db-muted">
+                      <td className="whitespace-nowrap px-4 py-3.5 font-mono text-[11.5px] text-slate">
                         {new Date(p.updatedAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}
                       </td>
-                      <td className="p-3 text-right">
+                      <td className="px-4 py-3.5 text-right">
                         <ProductRowActions id={p.id} slug={p.slug} archived={p.status === "ARCHIVED"} />
                       </td>
                     </tr>

@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { expirePromotions } from "@/lib/promotions";
 import {
   BUDGETS,
   brandFilter,
@@ -25,12 +26,14 @@ type Params = {
   q?: string;
   tri?: string;
   deals?: string;
+  collection?: string;
 };
 
-const KEYS = ["categorie", "marque", "prix", "q", "tri", "deals"] as const;
+const KEYS = ["categorie", "marque", "prix", "q", "tri", "deals", "collection"] as const;
 
 export default async function BoutiquePage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
+  await expirePromotions();
   const price = parsePriceRange(params.prix);
 
   const [universes, brandRows] = await Promise.all([
@@ -61,6 +64,13 @@ export default async function BoutiquePage({ searchParams }: { searchParams: Pro
     });
   }
   if (params.deals) filters.push({ variants: { some: { compareAtPrice: { not: null } } } });
+  const collection = params.collection
+    ? await prisma.collection.findFirst({
+        where: { slug: params.collection, active: true },
+        select: { name: true, description: true, products: { select: { productId: true, position: true } } },
+      })
+    : null;
+  if (params.collection) filters.push({ collections: { some: { collection: { slug: params.collection, active: true } } } });
 
   const raw = await prisma.product.findMany({
     where: { AND: filters },
@@ -101,8 +111,12 @@ export default async function BoutiquePage({ searchParams }: { searchParams: Pro
 
   const brandTitles: Record<string, string> = { Apple: "iPhone", Samsung: "Samsung Galaxy", Google: "Google Pixel" };
   const isSeries = !!activeCategory && activeCategory.parentId !== null;
-  const title = params.deals
+  const title = collection
+    ? collection.name
+    : params.deals
     ? "Offres du moment"
+    : params.q && isSeries
+    ? `${activeCategory!.name} ${params.q}`
     : params.q
       ? `« ${params.q} »`
       : isSeries
@@ -116,6 +130,7 @@ export default async function BoutiquePage({ searchParams }: { searchParams: Pro
     activeBrand && { label: activeBrand, href: hrefWith({ marque: undefined }) },
     activeBudget && { label: activeBudget.label, href: hrefWith({ prix: undefined }) },
     params.deals && { label: "Offres", href: hrefWith({ deals: undefined }) },
+    collection && { label: collection.name, href: hrefWith({ collection: undefined }) },
     params.q && { label: `« ${params.q} »`, href: hrefWith({ q: undefined }) },
   ].filter(Boolean) as { label: string; href: string }[];
 

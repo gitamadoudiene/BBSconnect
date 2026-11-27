@@ -105,6 +105,7 @@ export type PromoTile = {
   eyebrow: string;
   title: string;
   price?: string;
+  cta?: string;
   href: string;
   tone: "sky" | "paper" | "peach" | "ink";
   images: { src: string; alt: string; className: string }[];
@@ -132,7 +133,7 @@ export function PromoTiles({ tiles }: { tiles: PromoTile[] }) {
               <span className="mt-2 text-[22px] font-bold leading-[1.05] tracking-[-0.035em] lg:text-[24px]">{t.title}</span>
               {t.price && <span className="tabular mt-2 font-mono text-[12.5px] opacity-80">{t.price}</span>}
               <span className="mt-auto inline-flex items-center gap-1.5 text-[13.5px] font-semibold">
-                <span className="link-underline">J&apos;en profite</span>
+                <span className="link-underline">{t.cta ?? "J'en profite"}</span>
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </span>
             </div>

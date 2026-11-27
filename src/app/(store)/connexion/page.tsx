@@ -9,6 +9,7 @@ function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, undefined);
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "";
+  const expired = searchParams.get("expired") === "1";
 
   return (
     <div className="container-page flex min-h-[70vh] items-center justify-center py-16">
@@ -18,6 +19,12 @@ function LoginForm() {
           Suivez vos commandes et retrouvez vos favoris.
         </p>
 
+        {expired && (
+          <p className="mb-6 rounded-[14px] bg-accent-tint px-4 py-3 text-[14px] text-ink">
+            Votre session a expiré ou a été fermée depuis un autre appareil. Reconnectez-vous.
+          </p>
+        )}
+
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="redirect" value={redirect} />
           <div>
@@ -25,6 +32,7 @@ function LoginForm() {
             <input
               type="email"
               name="email"
+              autoComplete="username"
               required
               className="field"
             />
@@ -34,6 +42,7 @@ function LoginForm() {
             <input
               type="password"
               name="password"
+              autoComplete="current-password"
               required
               className="field"
             />

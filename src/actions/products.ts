@@ -4,16 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/session";
+import { requireMerchant } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
-
-async function requireMerchant() {
-  const session = await getSession();
-  if (!session || session.role !== "MERCHANT") {
-    redirect("/connexion?redirect=/dashboard");
-  }
-  return session;
-}
 
 const variantImageSchema = z.object({
   url: z.string().min(1),

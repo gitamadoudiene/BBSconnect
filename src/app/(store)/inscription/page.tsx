@@ -48,7 +48,8 @@ export default function RegisterPage() {
               type="password"
               name="password"
               required
-              minLength={6}
+              minLength={8}
+              autoComplete="new-password"
               className="field"
             />
           </div>

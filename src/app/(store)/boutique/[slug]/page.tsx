@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { expirePromotions } from "@/lib/promotions";
 import { productWithVariantsInclude, storefrontFilter, toProductCardData } from "@/lib/catalog";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductDetailView } from "@/components/store/ProductDetailView";
@@ -14,6 +15,7 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  await expirePromotions();
   const product = await prisma.product.findFirst({
     where: { AND: [{ slug }, storefrontFilter] },
     include: productWithVariantsInclude,

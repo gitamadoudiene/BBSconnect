@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/ui";
 import { prisma } from "@/lib/prisma";
 import { ProductForm } from "@/components/dashboard/ProductForm";
 import { updateProductAction } from "@/actions/products";
@@ -26,10 +25,11 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <Link href="/dashboard/produits" className="mb-4 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
-        <ArrowLeft className="h-4 w-4" /> Retour aux produits
-      </Link>
-      <h1 className="mb-6 text-[20px] font-semibold text-db-text">Modifier {product.name}</h1>
+      <PageHeader
+        back={{ href: "/dashboard/produits", label: "Retour aux produits" }}
+        eyebrow="Catalogue · Modifier"
+        title={product.name}
+      />
 
       <ProductForm
         categories={categories}

@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { prisma } from "@/lib/prisma";
 import { deleteCategoryAction } from "@/actions/categories";
 import { ConfirmButton } from "@/components/dashboard/ConfirmButton";
+import { EmptyState, Notice, PageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -36,61 +37,43 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-[20px] font-semibold text-db-text">Catégories</h1>
-          <p className="text-[13px] text-db-muted">{categories.length} catégorie{categories.length > 1 ? "s" : ""}</p>
-        </div>
-        <Link
-          href="/dashboard/categories/nouveau"
-          className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-accent-deep"
-        >
+      <PageHeader
+        eyebrow="Catalogue"
+        title="Catégories"
+        description={`${categories.length} catégorie${categories.length > 1 ? "s" : ""} · rayons et gammes de la boutique`}
+      >
+        <Link href="/dashboard/categories/nouveau" className="btn btn-primary btn-sm">
           <Plus className="h-4 w-4" /> Ajouter une catégorie
         </Link>
-      </div>
+      </PageHeader>
 
-      {banner && (
-        <div
-          className={clsx(
-            "mb-4 flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-[13px]",
-            banner.tone === "success" ? "border-db-success/20 bg-db-success-tint text-db-success" : "border-db-danger/20 bg-db-danger-tint text-db-danger"
-          )}
-        >
-          <banner.icon className="h-4 w-4 shrink-0" />
-          {banner.text}
-        </div>
-      )}
+      {banner && <Notice tone={banner.tone}>{banner.text}</Notice>}
 
-      <div className="overflow-hidden rounded-xl border border-db-border bg-db-card">
+      <div className="overflow-hidden db-card">
         {categories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <Folder className="mb-3 h-9 w-9 text-db-muted" strokeWidth={1.5} />
-            <p className="text-[14px] font-medium text-db-text">Aucune catégorie pour le moment</p>
-            <p className="mt-1 text-[13px] text-db-muted">Créez votre première catégorie pour organiser votre catalogue.</p>
-            <Link
-              href="/dashboard/categories/nouveau"
-              className="mt-4 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-accent-deep"
-            >
-              Ajouter une catégorie
-            </Link>
-          </div>
+          <EmptyState
+            icon={Folder}
+            title="Aucune catégorie pour le moment"
+            text="Créez votre première catégorie pour organiser votre catalogue."
+            action={<Link href="/dashboard/categories/nouveau" className="btn btn-primary btn-sm"><Plus className="h-4 w-4" /> Ajouter une catégorie</Link>}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-db-border bg-db-bg text-left text-[11px] uppercase tracking-wide text-db-muted">
-                  <th className="p-3">Nom</th>
-                  <th className="p-3">Produits</th>
-                  <th className="p-3">Statut</th>
-                  <th className="p-3 text-right">Actions</th>
+                <tr className="border-b border-line bg-paper/60 text-left">
+                  <th className="db-th px-4 py-3">Nom</th>
+                  <th className="db-th px-4 py-3">Produits</th>
+                  <th className="db-th px-4 py-3">Statut</th>
+                  <th className="db-th px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {ordered.map((c) => (
-                  <tr key={c.id} className="border-b border-db-border/70 last:border-0 hover:bg-db-bg/50">
-                    <td className="p-3">
+                  <tr key={c.id} className="border-b border-line last:border-0 hover:bg-paper/50">
+                    <td className="px-4 py-3.5">
                       <Link href={`/dashboard/categories/${c.id}`} className={clsx("flex items-center gap-3", c.parentId && "pl-6")}>
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-db-bg">
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-[12px] bg-paper">
                           {c.image ? (
                             <Image src={c.image} alt={c.name} fill sizes="40px" className="object-cover" />
                           ) : (
@@ -100,22 +83,22 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-db-text">{c.parentId ? "↳ " : ""}{c.name}</p>
-                          <p className="text-[11.5px] text-db-muted">/{c.slug}</p>
+                          <p className="font-semibold tracking-[-0.01em] text-ink">{c.parentId ? <span className="text-line-strong">↳ </span> : null}{c.name}</p>
+                          <p className="font-mono text-[11px] text-slate">/{c.slug}</p>
                         </div>
                       </Link>
                     </td>
-                    <td className="p-3 text-db-muted">{c._count.products}</td>
-                    <td className="p-3">
-                      <span className={clsx("rounded-full px-2.5 py-1 text-[11px] font-semibold", c.active ? "bg-db-success-tint text-db-success" : "bg-db-bg text-db-muted")}>
+                    <td className="tabular px-4 py-3.5 font-mono text-[12.5px] text-ink">{c._count.products}</td>
+                    <td className="px-4 py-3.5">
+                      <span className={clsx("badge", c.active ? "bg-db-success-tint text-db-success" : "bg-paper text-slate")}>
                         {c.active ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="p-3">
+                    <td className="px-4 py-3.5">
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`/dashboard/categories/${c.id}`}
-                          className="rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-accent hover:bg-accent-tint"
+                          className="pill h-8"
                         >
                           Modifier
                         </Link>
@@ -126,7 +109,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
                           trigger={
                             <button
                               aria-label="Supprimer"
-                              className="rounded-lg p-2 text-db-muted transition hover:bg-db-danger-tint hover:text-db-danger"
+                              className="flex h-8 w-8 items-center justify-center rounded-full text-slate transition hover:bg-db-danger-tint hover:text-db-danger"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>

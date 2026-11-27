@@ -2,9 +2,12 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowRight,
+  ArrowUpRight,
   CheckCircle2,
-  ImageOff,
+  Package,
   PackageX,
+  Plus,
+  ReceiptText,
   ShoppingBag,
   TrendingUp,
   Users,
@@ -12,30 +15,15 @@ import {
 import clsx from "clsx";
 import { prisma } from "@/lib/prisma";
 import { formatFCFA } from "@/lib/format";
-import { getPeriodRange, percentChange, resolvePeriod } from "@/lib/period";
+import { getPeriodRange, percentChange, periodLabels, resolvePeriod } from "@/lib/period";
 import { PeriodFilter } from "@/components/dashboard/PeriodFilter";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { RevenueChart, type RevenuePoint } from "@/components/dashboard/RevenueChart";
+import { CardTitle, EmptyState, OrderBadge, PageHeader } from "@/components/dashboard/ui";
+import { ORDER_STATUSES, orderStatusLabel, orderStatusTone } from "@/lib/orderStatus";
+import { getMerchant } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
-
-const statusLabels: Record<string, string> = {
-  PENDING: "En attente",
-  PAID: "Payée",
-  PROCESSING: "En préparation",
-  SHIPPED: "Expédiée",
-  DELIVERED: "Livrée",
-  CANCELLED: "Annulée",
-};
-
-const statusColors: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
-  PAID: "bg-blue-100 text-blue-700",
-  PROCESSING: "bg-indigo-100 text-indigo-700",
-  SHIPPED: "bg-purple-100 text-purple-700",
-  DELIVERED: "bg-emerald-100 text-emerald-700",
-  CANCELLED: "bg-red-100 text-red-700",
-};
 
 function dayLabel(d: Date) {
   return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
@@ -166,129 +154,144 @@ export default async function DashboardOverviewPage({
   ].slice(0, 6);
 
   const alertStyles = {
-    danger: { icon: PackageX, className: "border-db-danger/20 bg-db-danger-tint text-db-danger" },
-    warning: { icon: AlertTriangle, className: "border-db-warning/20 bg-db-warning-tint text-db-warning" },
-    success: { icon: CheckCircle2, className: "border-db-success/20 bg-db-success-tint text-db-success" },
+    danger: { icon: PackageX, className: "bg-db-danger-tint text-db-danger" },
+    warning: { icon: AlertTriangle, className: "bg-signal-tint text-signal-deep" },
+    success: { icon: CheckCircle2, className: "bg-db-success-tint text-db-success" },
   };
+
+  const merchant = await getMerchant();
+  const firstName = merchant?.name.split(" ")[0] ?? "";
+  const hour = Number(new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Africa/Dakar" }));
+  const greeting = hour < 18 ? "Bonjour" : "Bonsoir";
+  const averageBasket = ordersCurrent.length ? Math.round(revenue / ordersCurrent.length) : 0;
+  const countByStatus = new Map(statusCounts.map((s) => [s.status, s._count._all]));
+  const totalOrders = statusCounts.reduce((sum, s) => sum + s._count._all, 0);
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[13px] text-db-muted">
-          Bonjour 👋 — voici les performances de votre boutique.
-        </p>
+      <PageHeader
+        eyebrow={`Vue d'ensemble · ${periodLabels[period]}`}
+        title={`${greeting}${firstName ? ` ${firstName}` : ""}.`}
+        description="Voici où en est votre boutique."
+      >
         <PeriodFilter active={period} />
-      </div>
+      </PageHeader>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Chiffre d'affaires" value={formatFCFA(revenue)} change={revenueChange} icon={TrendingUp} />
         <KpiCard label="Commandes" value={ordersCurrent.length.toString()} change={ordersChange} icon={ShoppingBag} />
-        <KpiCard label="Clients (période)" value={uniqueCustomers.toString()} icon={Users} />
-        <div className="rounded-xl border border-dashed border-db-border bg-db-card p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-[12.5px] font-medium text-db-muted">Visiteurs</p>
-            <Users className="h-4 w-4 text-db-muted" />
-          </div>
-          <p className="mt-2 text-[15px] font-medium text-db-muted">Pas encore de données</p>
-          <p className="mt-2.5 text-[12px] text-db-muted">
-            Le suivi des visiteurs arrive avec le module Analytics.
-          </p>
-        </div>
+        <KpiCard label="Panier moyen" value={averageBasket ? formatFCFA(averageBasket) : "—"} icon={ReceiptText} hint="sur la période" />
+        <KpiCard label="Clients" value={uniqueCustomers.toString()} icon={Users} hint="ayant commandé sur la période" />
       </div>
 
       {alerts.length > 0 && (
-        <div className="mb-6 rounded-xl border border-db-border bg-db-card p-5">
-          <h2 className="mb-3 text-[13px] font-semibold text-db-text">À surveiller</h2>
-          <div className="space-y-2">
+        <div className="db-card mb-4 p-6">
+          <CardTitle>À surveiller</CardTitle>
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {alerts.map((a, i) => {
               const style = alertStyles[a.level];
               return (
-                <Link
-                  key={i}
-                  href={a.href}
-                  className={clsx("flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-[13px] transition hover:opacity-80", style.className)}
-                >
-                  <style.icon className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 text-db-text">{a.text}</span>
-                  <ArrowRight className="h-3.5 w-3.5 shrink-0 opacity-50" />
-                </Link>
+                <li key={i}>
+                  <Link
+                    href={a.href}
+                    className="group flex items-center gap-3 rounded-[14px] border border-line px-3.5 py-3 text-[13.5px] transition-colors hover:border-ink"
+                  >
+                    <span className={clsx("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", style.className)}>
+                      <style.icon className="h-4 w-4" />
+                    </span>
+                    <span className="flex-1 text-ink">{a.text}</span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-slate transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <div className="rounded-xl border border-db-border bg-db-card p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[13px] font-semibold text-db-text">Chiffre d&apos;affaires</h2>
-            <span className="text-[12px] text-db-muted">FCFA</span>
-          </div>
-          {chartData.every((d) => d.revenue === 0) ? (
-            <div className="flex h-[260px] items-center justify-center text-[13px] text-db-muted">
-              Aucune vente sur cette période.
-            </div>
-          ) : (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <div className="db-card p-6">
+          <CardTitle action={<span className="font-mono text-[11px] text-slate">F CFA</span>}>Chiffre d&apos;affaires</CardTitle>
+          <div className="relative">
             <RevenueChart data={chartData} />
-          )}
+            {chartData.every((d) => d.revenue === 0) && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="rounded-[16px] border border-line bg-white px-5 py-4 text-center">
+                  <p className="text-[14px] font-semibold text-ink">Aucune vente sur cette période</p>
+                  {period !== "year" && (
+                    <Link href="/dashboard?periode=year" className="mt-1 inline-flex items-center gap-1 text-[13px] font-semibold text-accent">
+                      <span className="link-underline">Voir toute l&apos;année</span> <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="rounded-xl border border-db-border bg-db-card p-6">
-          <h2 className="mb-4 text-[13px] font-semibold text-db-text">Produits les plus vendus</h2>
+        <div className="db-card p-6">
+          <CardTitle>Meilleures ventes</CardTitle>
           {topProducts.length === 0 ? (
-            <p className="py-6 text-center text-[13px] text-db-muted">Pas encore de ventes sur cette période.</p>
+            <p className="flex h-[240px] items-center justify-center rounded-[16px] bg-paper text-center text-[13.5px] text-slate">
+              Pas encore de ventes sur cette période.
+            </p>
           ) : (
-            <ul className="space-y-3.5">
-              {topProducts.map((p) => (
-                <li key={p.slug} className="flex items-center justify-between gap-3">
-                  <Link href={`/boutique/${p.slug}`} target="_blank" className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-[13px] font-medium text-db-text">{p.name}</p>
-                    <p className="text-[11.5px] text-db-muted">{p.qty} vendu{p.qty > 1 ? "s" : ""}</p>
+            <ol className="divide-y divide-line">
+              {topProducts.map((p, i) => (
+                <li key={p.slug}>
+                  <Link href={`/boutique/${p.slug}`} target="_blank" className="group flex items-center gap-3 py-3">
+                    <span className="w-5 font-mono text-[12px] text-slate">0{i + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-1 text-[14px] font-semibold tracking-[-0.01em] text-ink group-hover:text-accent">{p.name}</span>
+                      <span className="font-mono text-[11.5px] text-slate">{p.qty} vendu{p.qty > 1 ? "s" : ""}</span>
+                    </span>
+                    <span className="tabular shrink-0 text-[13.5px] font-semibold text-ink">{formatFCFA(p.revenue)}</span>
                   </Link>
-                  <span className="shrink-0 text-[13px] font-semibold text-db-text">{formatFCFA(p.revenue)}</span>
                 </li>
               ))}
-            </ul>
+            </ol>
           )}
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <div className="rounded-xl border border-db-border bg-db-card p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[13px] font-semibold text-db-text">Commandes récentes</h2>
-            <Link href="/dashboard/commandes" className="text-[12.5px] font-semibold text-accent hover:underline">
-              Tout voir
-            </Link>
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <div className="db-card overflow-hidden">
+          <div className="px-6 pt-6">
+            <CardTitle
+              action={
+                <Link href="/dashboard/commandes" className="group inline-flex items-center gap-1 text-[13px] font-semibold text-ink">
+                  <span className="link-underline">Toutes les commandes</span>
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              }
+            >
+              Commandes récentes
+            </CardTitle>
           </div>
           {recentOrders.length === 0 ? (
-            <p className="py-8 text-center text-[13px] text-db-muted">Aucune commande pour le moment.</p>
+            <EmptyState icon={ShoppingBag} title="Aucune commande pour le moment" text="Les commandes passées sur la boutique arriveront ici." />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
+              <table className="w-full text-[13.5px]">
                 <thead>
-                  <tr className="border-b border-db-border text-left text-[11px] uppercase tracking-wide text-db-muted">
-                    <th className="pb-2 pr-4">Référence</th>
-                    <th className="pb-2 pr-4">Client</th>
-                    <th className="pb-2 pr-4">Statut</th>
-                    <th className="pb-2 text-right">Total</th>
+                  <tr className="border-y border-line bg-paper/60 text-left">
+                    <th className="db-th px-6 py-3">Référence</th>
+                    <th className="db-th px-4 py-3">Client</th>
+                    <th className="db-th px-4 py-3">Statut</th>
+                    <th className="db-th px-6 py-3 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentOrders.map((o) => (
-                    <tr key={o.id} className="border-b border-db-border/60 last:border-0">
-                      <td className="py-2.5 pr-4">
-                        <Link href={`/dashboard/commandes/${o.id}`} className="font-medium text-accent hover:underline">
+                    <tr key={o.id} className="border-b border-line last:border-0 hover:bg-paper/50">
+                      <td className="px-6 py-3.5">
+                        <Link href={`/dashboard/commandes/${o.id}`} className="font-mono text-[12.5px] font-medium text-accent hover:underline">
                           {o.reference}
                         </Link>
                       </td>
-                      <td className="py-2.5 pr-4 text-db-text">{o.customerName}</td>
-                      <td className="py-2.5 pr-4">
-                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColors[o.status]}`}>
-                          {statusLabels[o.status]}
-                        </span>
-                      </td>
-                      <td className="py-2.5 text-right font-semibold text-db-text">{formatFCFA(o.total)}</td>
+                      <td className="px-4 py-3.5 text-ink">{o.customerName}</td>
+                      <td className="px-4 py-3.5"><OrderBadge status={o.status} /></td>
+                      <td className="tabular px-6 py-3.5 text-right font-semibold text-ink">{formatFCFA(o.total)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -297,43 +300,57 @@ export default async function DashboardOverviewPage({
           )}
         </div>
 
-        <div className="space-y-6">
-          <div className="rounded-xl border border-db-border bg-db-card p-6">
-            <h2 className="mb-4 text-[13px] font-semibold text-db-text">Commandes par statut</h2>
-            <div className="space-y-3">
-              {statusCounts.map((s) => (
-                <div key={s.status}>
-                  <div className="mb-1 flex justify-between text-[11.5px] text-db-muted">
-                    <span>{statusLabels[s.status]}</span>
-                    <span>{s._count._all}</span>
-                  </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-db-bg">
-                    <div
-                      className="h-full rounded-full bg-accent"
-                      style={{ width: `${(s._count._all / maxStatusCount) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="flex flex-col gap-4">
+          <div className="db-card p-6">
+            <CardTitle action={<span className="tabular font-mono text-[11.5px] text-slate">{totalOrders} au total</span>}>
+              Commandes par statut
+            </CardTitle>
+            <ul className="space-y-3.5">
+              {ORDER_STATUSES.map((status) => {
+                const count = countByStatus.get(status) ?? 0;
+                return (
+                  <li key={status}>
+                    <Link href={`/dashboard/commandes?status=${status}`} className="group block">
+                      <span className="mb-1.5 flex items-center justify-between text-[13px]">
+                        <span className="flex items-center gap-2 text-ink group-hover:text-accent">
+                          <span className={clsx("h-2 w-2 rounded-full", orderStatusTone[status].dot)} />
+                          {orderStatusLabel[status]}
+                        </span>
+                        <span className="tabular font-mono text-[12px] text-slate">{count}</span>
+                      </span>
+                      <span className="block h-1.5 w-full overflow-hidden rounded-full bg-paper">
+                        <span
+                          className={clsx("block h-full rounded-full", orderStatusTone[status].dot)}
+                          style={{ width: `${(count / maxStatusCount) * 100}%` }}
+                        />
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
-          <div className="rounded-xl border border-db-border bg-db-card p-6 text-center">
-            <p className="text-[24px] font-semibold text-db-text">{productCount}</p>
-            <p className="text-[12.5px] text-db-muted">produits au catalogue</p>
-            <Link href="/dashboard/produits" className="mt-3 inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline">
-              Gérer le catalogue <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+          <div className="flex flex-1 flex-col justify-between gap-6 rounded-[22px] bg-ink p-6 text-white">
+            <div className="flex items-start justify-between">
+              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-white/50">Catalogue</p>
+              <Package className="h-5 w-5 text-white/50" strokeWidth={1.6} />
+            </div>
+            <div>
+              <p className="tabular text-[40px] font-bold leading-none tracking-[-0.05em]">{productCount}</p>
+              <p className="mt-1 text-[13.5px] text-white/60">produits en ligne ou en brouillon</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/dashboard/produits/nouveau" className="btn btn-inverse btn-sm">
+                <Plus className="h-4 w-4" /> Ajouter
+              </Link>
+              <Link href="/dashboard/produits" className="btn btn-ghost-light btn-sm">
+                Gérer <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-
-      {missingImageVariants.length > 0 && (
-        <div className="mt-6 flex items-center gap-2 text-[12px] text-db-muted">
-          <ImageOff className="h-3.5 w-3.5" />
-          Astuce : ajoutez une image principale à chaque variante pour un rendu optimal sur la boutique.
-        </div>
-      )}
     </div>
   );
 }

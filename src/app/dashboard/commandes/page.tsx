@@ -1,109 +1,122 @@
 import Link from "next/link";
 import clsx from "clsx";
-import { ShoppingBag } from "lucide-react";
+import { Search, ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatFCFA } from "@/lib/format";
 import type { OrderStatus } from "@prisma/client";
+import { EmptyState, OrderBadge, PageHeader } from "@/components/dashboard/ui";
+import { ORDER_STATUSES, orderStatusLabel } from "@/lib/orderStatus";
 
 export const dynamic = "force-dynamic";
 
-const statusLabels: Record<string, string> = {
-  PENDING: "En attente",
-  PAID: "Payée",
-  PROCESSING: "En préparation",
-  SHIPPED: "Expédiée",
-  DELIVERED: "Livrée",
-  CANCELLED: "Annulée",
-};
-
-const statusColors: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
-  PAID: "bg-blue-100 text-blue-700",
-  PROCESSING: "bg-indigo-100 text-indigo-700",
-  SHIPPED: "bg-purple-100 text-purple-700",
-  DELIVERED: "bg-emerald-100 text-emerald-700",
-  CANCELLED: "bg-red-100 text-red-700",
-};
-
-type SearchParams = Promise<{ status?: string }>;
+type SearchParams = Promise<{ status?: string; q?: string }>;
 
 export default async function DashboardOrdersPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const status = params.status as OrderStatus | undefined;
+  const status = ORDER_STATUSES.includes(params.status as OrderStatus) ? (params.status as OrderStatus) : undefined;
+  const q = params.q?.trim();
 
-  const orders = await prisma.order.findMany({
-    where: status ? { status } : undefined,
-    orderBy: { createdAt: "desc" },
-    include: { items: true },
-  });
+  const [orders, counts] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        ...(status ? { status } : {}),
+        ...(q
+          ? {
+              OR: [
+                { reference: { contains: q, mode: "insensitive" as const } },
+                { customerName: { contains: q, mode: "insensitive" as const } },
+                { customerEmail: { contains: q, mode: "insensitive" as const } },
+                { customerPhone: { contains: q } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      include: { items: true },
+      take: 200,
+    }),
+    prisma.order.groupBy({ by: ["status"], _count: { _all: true } }),
+  ]);
+  const countOf = new Map(counts.map((c) => [c.status, c._count._all]));
+  const total = counts.reduce((s, c) => s + c._count._all, 0);
+  const tabHref = (s?: string) => {
+    const sp = new URLSearchParams();
+    if (s) sp.set("status", s);
+    if (q) sp.set("q", q);
+    const qs = sp.toString();
+    return `/dashboard/commandes${qs ? `?${qs}` : ""}`;
+  };
 
   return (
     <div>
-      <p className="mb-4 text-[13px] text-db-muted">{orders.length} commande{orders.length > 1 ? "s" : ""}</p>
+      <PageHeader
+        eyebrow="Ventes"
+        title="Commandes"
+        description={`${total} commande${total > 1 ? "s" : ""} au total · ${countOf.get("PENDING") ?? 0} en attente de traitement`}
+      >
+        <form role="search" className="relative">
+          {status && <input type="hidden" name="status" value={status} />}
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Référence, client, téléphone…"
+            aria-label="Rechercher une commande"
+            className="field field-sm w-72 pl-10"
+          />
+        </form>
+      </PageHeader>
 
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        <Link
-          href="/dashboard/commandes"
-          className={clsx(
-            "rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition",
-            !status ? "bg-ink text-white" : "text-db-muted hover:bg-db-bg"
-          )}
-        >
-          Toutes
+      <div className="rail mb-4 flex gap-2 overflow-x-auto">
+        <Link href={tabHref()} className={clsx("pill", !status && "pill-active")}>
+          Toutes <span className="tabular font-mono text-[11px] opacity-60">{total}</span>
         </Link>
-        {Object.entries(statusLabels).map(([value, label]) => (
-          <Link
-            key={value}
-            href={`/dashboard/commandes?status=${value}`}
-            className={clsx(
-              "rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition",
-              status === value ? "bg-ink text-white" : "text-db-muted hover:bg-db-bg"
-            )}
-          >
-            {label}
+        {ORDER_STATUSES.map((value) => (
+          <Link key={value} href={tabHref(value)} className={clsx("pill", status === value && "pill-active")}>
+            {orderStatusLabel[value]}
+            <span className="tabular font-mono text-[11px] opacity-60">{countOf.get(value) ?? 0}</span>
           </Link>
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-db-border bg-db-card">
+      <div className="overflow-hidden db-card">
         {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-            <ShoppingBag className="mb-3 h-9 w-9 text-db-muted" strokeWidth={1.5} />
-            <p className="text-[14px] font-medium text-db-text">Aucune commande {status ? "dans ce statut" : "pour le moment"}</p>
-          </div>
+          <EmptyState
+            icon={ShoppingBag}
+            title={q ? "Aucune commande ne correspond à cette recherche" : `Aucune commande ${status ? "dans ce statut" : "pour le moment"}`}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-db-border bg-db-bg text-left text-[11px] uppercase tracking-wide text-db-muted">
-                  <th className="p-3">Référence</th>
-                  <th className="p-3">Client</th>
-                  <th className="p-3">Articles</th>
-                  <th className="p-3">Statut</th>
-                  <th className="p-3">Date</th>
-                  <th className="p-3 text-right">Total</th>
+                <tr className="border-b border-line bg-paper/60 text-left">
+                  <th className="db-th px-4 py-3">Référence</th>
+                  <th className="db-th px-4 py-3">Client</th>
+                  <th className="db-th px-4 py-3">Articles</th>
+                  <th className="db-th px-4 py-3">Statut</th>
+                  <th className="db-th px-4 py-3">Date</th>
+                  <th className="db-th px-4 py-3 text-right">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((o) => (
-                  <tr key={o.id} className="border-b border-db-border/70 last:border-0 hover:bg-db-bg/50">
-                    <td className="p-3">
-                      <Link href={`/dashboard/commandes/${o.id}`} className="font-medium text-accent hover:underline">
+                  <tr key={o.id} className="border-b border-line last:border-0 hover:bg-paper/50">
+                    <td className="px-4 py-3.5">
+                      <Link href={`/dashboard/commandes/${o.id}`} className="font-mono text-[12.5px] font-medium text-accent hover:underline">
                         {o.reference}
                       </Link>
                     </td>
-                    <td className="p-3">
-                      <p className="text-db-text">{o.customerName}</p>
-                      <p className="text-[11.5px] text-db-muted">{o.customerEmail}</p>
+                    <td className="px-4 py-3.5">
+                      <p className="font-medium text-ink">{o.customerName}</p>
+                      <p className="font-mono text-[11px] text-slate">{o.customerPhone}</p>
                     </td>
-                    <td className="p-3 text-db-muted">{o.items.length}</td>
-                    <td className="p-3">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColors[o.status]}`}>
-                        {statusLabels[o.status]}
-                      </span>
+                    <td className="tabular px-4 py-3.5 font-mono text-[12.5px] text-ink">{o.items.reduce((n, i) => n + i.quantity, 0)}</td>
+                    <td className="px-4 py-3.5">
+                      <OrderBadge status={o.status} />
                     </td>
-                    <td className="p-3 text-[12px] text-db-muted">{new Date(o.createdAt).toLocaleDateString("fr-FR")}</td>
-                    <td className="p-3 text-right font-semibold text-db-text">{formatFCFA(o.total)}</td>
+                    <td className="whitespace-nowrap px-4 py-3.5 font-mono text-[11.5px] text-slate">{new Date(o.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                    <td className="tabular whitespace-nowrap px-4 py-3.5 text-right font-semibold text-ink">{formatFCFA(o.total)}</td>
                   </tr>
                 ))}
               </tbody>

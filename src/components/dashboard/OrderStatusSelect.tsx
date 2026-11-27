@@ -25,7 +25,8 @@ export function OrderStatusSelect({ orderId, status }: { orderId: string; status
           updateOrderStatusAction(orderId, e.target.value as OrderStatus);
         })
       }
-      className="rounded-lg border border-db-border px-3 py-2 text-[13px] font-medium text-db-text outline-none focus:border-accent disabled:opacity-50"
+      aria-label="Changer le statut"
+      className="field field-sm w-auto font-medium disabled:opacity-50"
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>

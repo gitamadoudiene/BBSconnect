@@ -43,7 +43,29 @@ model User {
   address   String?
   createdAt DateTime @default(now())
 
+  /// Bumped on password change / "sign out everywhere": every session token
+  /// carrying an older value stops working.
+  sessionVersion    Int       @default(0)
+  failedLogins      Int       @default(0)
+  lockedUntil       DateTime?
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+
   orders Order[]
+}
+
+/// One row per sign-in attempt: drives IP throttling and the admin's
+/// "activité de connexion" journal.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String
+  userAgent String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([ip, createdAt])
+  @@index([email, createdAt])
 }
 
 model Category {
@@ -83,7 +105,8 @@ model Product {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
-  variants ProductVariant[]
+  variants    ProductVariant[]
+  collections CollectionProduct[]
 }
 
 /// One purchasable configuration of a Product: a specific color + storage
@@ -105,7 +128,8 @@ model ProductVariant {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   images     ProductImage[]
-  orderItems OrderItem[]
+  orderItems     OrderItem[]
+  promotionItems PromotionItem[]
 }
 
 model ProductImage {
@@ -151,4 +175,133 @@ model OrderItem {
 
   variantId String
   variant   ProductVariant @relation(fields: [variantId], references: [id])
+}
+
+/// A hand-picked selection of products ("Spécial rentrée", "Meilleures ventes").
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  active      Boolean  @default(true)
+  /// Shown as a product rail on the home page.
+  onHome      Boolean  @default(false)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products CollectionProduct[]
+}
+
+model CollectionProduct {
+  collectionId String
+  productId    String
+  position     Int    @default(0)
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, productId])
+}
+
+enum BannerPlacement {
+  HERO
+  TILE
+}
+
+/// Home page banners: the big animated hero slides and the small promo tiles.
+model Banner {
+  id        String          @id @default(cuid())
+  placement BannerPlacement
+  eyebrow   String
+  /// Line breaks split the title over several lines.
+  title     String
+  text      String?
+  ctaLabel  String?
+  href      String
+  tag       String?
+  theme     String
+  /// [{ src, alt }] — position comes from a layout preset in code.
+  images    Json            @default("[]")
+  /// Show the lowest price of the products the link points to.
+  showPrice Boolean         @default(true)
+  active    Boolean         @default(true)
+  position  Int             @default(0)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([placement, active])
+}
+
+/// Free-form shop settings (home page layout, announcement bar…).
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+enum PromotionStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+}
+
+/// A percentage discount applied to variants: the old price moves to
+/// compareAtPrice and is restored when the promotion ends.
+model Promotion {
+  id        String          @id @default(cuid())
+  name      String
+  percent   Int
+  status    PromotionStatus @default(DRAFT)
+  /// JSON description of what it targets: { productIds?, categoryId?, brand? }
+  target    Json            @default("{}")
+  endsAt    DateTime?
+  startedAt DateTime?
+  endedAt   DateTime?
+  createdAt DateTime        @default(now())
+
+  items PromotionItem[]
+}
+
+model PromotionItem {
+  id                String @id @default(cuid())
+  promotionId       String
+  variantId         String
+  originalPrice     Int
+  originalCompareAt Int?
+
+  promotion Promotion      @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([variantId])
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PRODUCT_VIEW
+  ADD_TO_CART
+  BEGIN_CHECKOUT
+  PURCHASE
+}
+
+/// First-party, cookie-less analytics: random ids kept in the browser's
+/// storage, no IP address stored.
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  type      AnalyticsEventType
+  path      String
+  visitorId String
+  sessionId String
+  productId String?
+  value     Int?
+  referrer  String?
+  device    String?
+  country   String?
+  createdAt DateTime           @default(now())
+
+  @@index([createdAt])
+  @@index([type, createdAt])
+  @@index([sessionId])
 }

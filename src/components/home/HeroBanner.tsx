@@ -16,10 +16,7 @@ import {
 import clsx from "clsx";
 import { formatFCFA } from "@/lib/format";
 
-/** Live "from" prices, read from the catalogue on the server. */
-export type BannerPrices = { iphonePro?: number; samsung?: number; iphone?: number };
-
-type Phone = {
+export type HeroPhone = {
   src: string;
   alt: string;
   /** position & size in % of the stage, depth drives parallax strength */
@@ -29,65 +26,27 @@ type Phone = {
   rotate: number;
   depth: number;
   z: number;
+  /** Solo image: spans the stage width (x% margin each side) and is contained,
+   *  so tall phones and wide shots (a Fold opened) both fit. */
+  fit?: boolean;
 };
 
-type Slide = {
+export type HeroTheme = "orange" | "blue" | "ink";
+
+export type HeroSlide = {
   key: string;
-  theme: "orange" | "blue" | "ink";
+  theme: HeroTheme;
   eyebrow: string;
   title: string[];
   text: string;
   cta: { label: string; href: string };
-  price?: keyof BannerPrices;
+  /** Lowest live price of what the slide links to. */
+  price?: number;
   tag: string;
-  phones: Phone[];
+  phones: HeroPhone[];
 };
 
-const slides: Slide[] = [
-  {
-    key: "iphone17pro",
-    theme: "orange",
-    eyebrow: "Nouveau · Apple",
-    title: ["iPhone 17 Pro", "est arrivé."],
-    text: "Puce A19 Pro, triple 48 Mpx, autonomie record. Disponible en orange cosmique, bleu intense et argent.",
-    cta: { label: "Choisir mon iPhone 17 Pro", href: "/boutique?categorie=iphone-17" },
-    price: "iphonePro",
-    tag: "Nouveau",
-    phones: [
-      { src: "/images/banner/iphone17pro-deepblue.webp", alt: "iPhone 17 Pro bleu intense", x: 6, y: 16, h: 70, rotate: -9, depth: 0.5, z: 1 },
-      { src: "/images/banner/iphone17pro-silver.webp", alt: "iPhone 17 Pro argent", x: 52, y: 12, h: 72, rotate: 8, depth: 0.6, z: 1 },
-      { src: "/images/banner/iphone17pro-orange.webp", alt: "iPhone 17 Pro orange cosmique", x: 26, y: 6, h: 90, rotate: -2, depth: 1, z: 2 },
-    ],
-  },
-  {
-    key: "galaxy",
-    theme: "blue",
-    eyebrow: "Samsung Galaxy",
-    title: ["Galaxy,", "l'autre légende."],
-    text: "Galaxy S, Z Fold, Z Flip et Galaxy A : toute la gamme Samsung, neuve et garantie, livrée en 24 h à Dakar.",
-    cta: { label: "Voir les Galaxy", href: "/boutique?marque=samsung" },
-    price: "samsung",
-    tag: "Samsung",
-    phones: [
-      { src: "/images/banner/galaxy-duo.webp", alt: "Deux smartphones Samsung Galaxy", x: 10, y: 12, h: 78, rotate: -8, depth: 1, z: 2 },
-    ],
-  },
-  {
-    key: "iphone-prices",
-    theme: "ink",
-    eyebrow: "Petits prix",
-    title: ["Un iPhone", "à votre budget."],
-    text: "Des iPhone 11 aux iPhone 17 : choisissez la génération qui vous va, au juste prix, avec garantie.",
-    cta: { label: "Voir tous les iPhone", href: "/boutique?categorie=smartphones&marque=apple" },
-    price: "iphone",
-    tag: "Meilleurs prix",
-    phones: [
-      { src: "/images/banner/iphone12-range.webp", alt: "iPhone 12 en cinq coloris", x: 0, y: 30, h: 58, rotate: -4, depth: 0.45, z: 1 },
-      { src: "/images/banner/iphone-air.webp", alt: "iPhone Air bleu ciel", x: 58, y: 8, h: 74, rotate: 7, depth: 0.7, z: 1 },
-      { src: "/images/banner/iphone17-black.webp", alt: "iPhone 17 noir", x: 33, y: 2, h: 92, rotate: -3, depth: 1, z: 2 },
-    ],
-  },
-];
+type Phone = HeroPhone;
 
 const themes = {
   orange: {
@@ -125,7 +84,7 @@ const themes = {
 const DURATION = 6500;
 const spring = { type: "spring", stiffness: 120, damping: 16, mass: 0.9 } as const;
 
-export function HeroBanner({ prices }: { prices: BannerPrices }) {
+export function HeroBanner({ slides }: { slides: HeroSlide[] }) {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const [paused, setPaused] = useState(false);
@@ -141,12 +100,12 @@ export function HeroBanner({ prices }: { prices: BannerPrices }) {
       setIndex((next + slides.length) % slides.length);
       progress.set(0);
     },
-    [progress]
+    [progress, slides.length]
   );
 
   // Autoplay — pauses on hover / focus, resumes where it stopped.
   useEffect(() => {
-    if (paused || reduce) return;
+    if (paused || reduce || slides.length < 2) return;
     let raf = 0;
     let last = performance.now();
     const tick = (now: number) => {
@@ -163,7 +122,7 @@ export function HeroBanner({ prices }: { prices: BannerPrices }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [paused, reduce, progress]);
+  }, [paused, reduce, progress, slides.length]);
 
   // Mouse parallax, shared by every phone and scaled by its depth.
   const mx = useMotionValue(0);
@@ -178,9 +137,9 @@ export function HeroBanner({ prices }: { prices: BannerPrices }) {
     my.set((e.clientY - r.top) / r.height - 0.5);
   }
 
-  const slide = slides[index];
+  const slide = slides[Math.min(index, slides.length - 1)];
   const t = themes[slide.theme];
-  const price = slide.price ? prices[slide.price] : undefined;
+  const price = slide.price;
 
   return (
     <section aria-roledescription="carrousel" aria-label="Offres à la une" className="container-page pt-4 lg:pt-6">
@@ -340,6 +299,7 @@ function FloatingPhone({
         left: `${phone.x}%`,
         top: `${phone.y}%`,
         height: `${phone.h}%`,
+        width: phone.fit ? `${100 - phone.x * 2}%` : undefined,
         zIndex: phone.z,
         x: reduce ? 0 : px,
         y: reduce ? 0 : py,
@@ -360,8 +320,11 @@ function FloatingPhone({
           alt={phone.alt}
           width={900}
           height={900}
-          sizes="(min-width: 1024px) 380px, 60vw"
-          className="h-full w-auto max-w-none select-none object-contain drop-shadow-[0_28px_30px_rgba(0,0,0,0.28)]"
+          sizes={phone.fit ? "(min-width: 1024px) 620px, 90vw" : "(min-width: 1024px) 380px, 60vw"}
+          className={clsx(
+            "select-none object-contain drop-shadow-[0_28px_30px_rgba(0,0,0,0.28)]",
+            phone.fit ? "h-full w-full" : "h-full w-auto max-w-none"
+          )}
           draggable={false}
         />
       </motion.div>
@@ -378,7 +341,7 @@ function PriceTag({
 }: {
   label: string;
   price: number;
-  theme: Slide["theme"];
+  theme: HeroTheme;
   reduce: boolean;
 }) {
   const colors = {

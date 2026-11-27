@@ -20,11 +20,21 @@ export function DuoMark({ size = 30, className }: { size?: number; className?: s
   );
 }
 
-export function Logo({ className, dark }: { className?: string; dark?: boolean }) {
+export function Logo({
+  className,
+  dark,
+  href = "/",
+  label = "BBS Connect — Balla Business Service, accueil",
+}: {
+  className?: string;
+  dark?: boolean;
+  href?: string;
+  label?: string;
+}) {
   return (
     <Link
-      href="/"
-      aria-label="BBS Connect — Balla Business Service, accueil"
+      href={href}
+      aria-label={label}
       className={clsx("inline-flex shrink-0 select-none items-center gap-2.5", className)}
     >
       <DuoMark size={30} className="sm:w-[34px]" />

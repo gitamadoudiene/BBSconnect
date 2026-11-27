@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { analyticsIds } from "@/lib/analytics-client";
 import Link from "next/link";
 import { formatFCFA } from "@/lib/format";
 import { useCartStore } from "@/store/cart";
@@ -45,6 +46,7 @@ export default function CheckoutPage() {
           city: formData.get("city"),
           paymentMethod: payment,
           items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
+          analytics: analyticsIds() ?? undefined,
         }),
       });
       const data = await res.json();

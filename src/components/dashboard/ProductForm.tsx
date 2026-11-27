@@ -143,32 +143,32 @@ export function ProductForm({
       <input type="hidden" name="variants" value={variantsJson} />
 
       <div className="space-y-6">
-        <div className="rounded-xl border border-db-border bg-db-card p-6">
-          <h2 className="mb-4 text-[13px] font-semibold text-db-text">Informations générales</h2>
+        <div className="db-card p-6">
+          <h2 className="db-eyebrow mb-5">Informations générales</h2>
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-[13px] font-medium text-db-text">Nom du produit *</label>
+              <label className="field-label">Nom du produit *</label>
               <input
                 name="name"
                 required
                 placeholder="ex : iPhone 17 Pro"
                 defaultValue={defaultValues?.name}
-                className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                className="field field-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[13px] font-medium text-db-text">Description</label>
+              <label className="field-label">Description</label>
               <textarea
                 name="description"
                 required
                 rows={3}
                 placeholder="Description commerciale affichée sur la fiche produit"
                 defaultValue={defaultValues?.description}
-                className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                className="field field-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[13px] font-medium text-db-text">
+              <label className="field-label">
                 Caractéristiques techniques (une par ligne, format &quot;Label : valeur&quot;)
               </label>
               <textarea
@@ -177,22 +177,22 @@ export function ProductForm({
                 rows={5}
                 placeholder={"Écran : 6,1 pouces\nPuce : A18\nAppareil photo : Double 48 Mpx"}
                 defaultValue={defaultValues?.specs}
-                className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                className="field field-sm"
               />
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-db-border bg-db-card p-6">
-          <h2 className="mb-4 text-[13px] font-semibold text-db-text">Organisation</h2>
+        <div className="db-card p-6">
+          <h2 className="db-eyebrow mb-5">Organisation</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-[13px] font-medium text-db-text">Catégorie *</label>
+              <label className="field-label">Catégorie *</label>
               <select
                 name="categoryId"
                 required
                 defaultValue={defaultValues?.categoryId}
-                className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                className="field field-sm"
               >
                 <option value="" disabled>
                   Choisir une catégorie
@@ -205,14 +205,14 @@ export function ProductForm({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[13px] font-medium text-db-text">Marque *</label>
+              <label className="field-label">Marque *</label>
               <input
                 name="brand"
                 required
                 list="brand-options"
                 placeholder="ex : Apple, Samsung, Sony"
                 defaultValue={defaultValues?.brand ?? "Apple"}
-                className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                className="field field-sm"
               />
               <datalist id="brand-options">
                 {["Apple", "Samsung", "Google", "Xiaomi", "BBS Connect", "Anker", "Belkin"].map((b) => (
@@ -221,24 +221,24 @@ export function ProductForm({
               </datalist>
             </div>
             <div>
-              <label className="mb-1 block text-[13px] font-medium text-db-text">Tags</label>
+              <label className="field-label">Tags</label>
               <input
                 name="tags"
                 placeholder="ex : nouveauté, populaire"
                 defaultValue={defaultValues?.tags}
-                className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                className="field field-sm"
               />
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-db-border bg-db-card p-6">
+        <div className="db-card p-6">
           <div className="mb-1 flex items-center justify-between">
-            <h2 className="text-[13px] font-semibold text-db-text">Variantes</h2>
+            <h2 className="db-eyebrow">Variantes</h2>
             <button
               type="button"
               onClick={addVariant}
-              className="flex items-center gap-1.5 rounded-lg border border-db-border px-3 py-1.5 text-[12px] font-semibold text-db-text transition hover:border-accent hover:text-accent"
+              className="pill h-9"
             >
               <Plus className="h-3.5 w-3.5" /> Ajouter une variante
             </button>
@@ -249,7 +249,7 @@ export function ProductForm({
 
           <div className="space-y-5">
             {variants.map((v, i) => (
-              <div key={v.key} className="rounded-lg border border-db-border p-4">
+              <div key={v.key} className="rounded-[18px] border border-line bg-paper/40 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-db-muted">
                     Variante {i + 1}
@@ -267,72 +267,72 @@ export function ProductForm({
 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="mb-1 block text-[11.5px] font-medium text-db-text">SKU</label>
+                    <label className="mb-1 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">SKU</label>
                     <input
                       required
                       value={v.sku}
                       onChange={(e) => updateVariant(v.key, { sku: e.target.value })}
-                      className="w-full rounded-lg border border-db-border px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+                      className="field field-sm h-9"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[11.5px] font-medium text-db-text">Couleur</label>
+                    <label className="mb-1 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">Couleur</label>
                     <input
                       required
                       placeholder="ex : Bleu intense"
                       value={v.colorName}
                       onChange={(e) => updateVariant(v.key, { colorName: e.target.value })}
-                      className="w-full rounded-lg border border-db-border px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+                      className="field field-sm h-9"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[11.5px] font-medium text-db-text">Teinte</label>
+                    <label className="mb-1 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">Teinte</label>
                     <input
                       type="color"
                       value={v.colorHex}
                       onChange={(e) => updateVariant(v.key, { colorHex: e.target.value })}
-                      className="h-9 w-full cursor-pointer rounded-lg border border-db-border"
+                      className="h-9 w-full cursor-pointer rounded-[10px] border border-line"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[11.5px] font-medium text-db-text">Stockage</label>
+                    <label className="mb-1 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">Stockage</label>
                     <input
                       placeholder="ex : 256 Go"
                       value={v.storage}
                       onChange={(e) => updateVariant(v.key, { storage: e.target.value })}
-                      className="w-full rounded-lg border border-db-border px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+                      className="field field-sm h-9"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[11.5px] font-medium text-db-text">Prix (FCFA) *</label>
+                    <label className="mb-1 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">Prix (FCFA) *</label>
                     <input
                       type="number"
                       min={0}
                       required
                       value={v.price}
                       onChange={(e) => updateVariant(v.key, { price: e.target.value })}
-                      className="w-full rounded-lg border border-db-border px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+                      className="field field-sm h-9"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[11.5px] font-medium text-db-text">Prix avant réduction</label>
+                    <label className="mb-1 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">Prix avant réduction</label>
                     <input
                       type="number"
                       min={0}
                       value={v.compareAtPrice}
                       onChange={(e) => updateVariant(v.key, { compareAtPrice: e.target.value })}
-                      className="w-full rounded-lg border border-db-border px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+                      className="field field-sm h-9"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[11.5px] font-medium text-db-text">Stock *</label>
+                    <label className="mb-1 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-slate">Stock *</label>
                     <input
                       type="number"
                       min={0}
                       required
                       value={v.stock}
                       onChange={(e) => updateVariant(v.key, { stock: e.target.value })}
-                      className="w-full rounded-lg border border-db-border px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+                      className="field field-sm h-9"
                     />
                   </div>
                 </div>
@@ -350,14 +350,14 @@ export function ProductForm({
           </div>
         </div>
 
-        <div className="rounded-xl border border-db-border bg-db-card">
+        <div className="db-card">
           <button
             type="button"
             onClick={() => setSeoOpen((v) => !v)}
             className="flex w-full items-center justify-between p-6 text-left"
           >
             <div>
-              <h2 className="text-[13px] font-semibold text-db-text">SEO &amp; visibilité</h2>
+              <h2 className="db-eyebrow">SEO &amp; visibilité</h2>
               <p className="mt-0.5 text-[12px] text-db-muted">Titre et description pour les moteurs de recherche</p>
             </div>
             <ChevronDown className={clsx("h-4 w-4 text-db-muted transition-transform", seoOpen && "rotate-180")} />
@@ -365,31 +365,31 @@ export function ProductForm({
           {seoOpen && (
             <div className="space-y-4 border-t border-db-border p-6 pt-5">
               <div>
-                <label className="mb-1 block text-[13px] font-medium text-db-text">Meta title</label>
+                <label className="field-label">Meta title</label>
                 <input
                   name="seoTitle"
                   placeholder={defaultValues?.name || "Titre affiché dans les résultats de recherche"}
                   defaultValue={defaultValues?.seoTitle}
-                  className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                  className="field field-sm"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[13px] font-medium text-db-text">Meta description</label>
+                <label className="field-label">Meta description</label>
                 <textarea
                   name="seoDescription"
                   rows={2}
                   placeholder="Résumé affiché sous le titre dans les résultats de recherche"
                   defaultValue={defaultValues?.seoDescription}
-                  className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                  className="field field-sm"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[13px] font-medium text-db-text">Slug (URL)</label>
+                <label className="field-label">Slug (URL)</label>
                 <input
                   name="slug"
                   placeholder="généré automatiquement à partir du nom si laissé vide"
                   defaultValue={defaultValues?.slug}
-                  className="w-full rounded-lg border border-db-border px-3 py-2 text-[13.5px] outline-none focus:border-accent"
+                  className="field field-sm"
                 />
               </div>
             </div>
@@ -398,14 +398,14 @@ export function ProductForm({
       </div>
 
       <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <div className="rounded-xl border border-db-border bg-db-card p-5">
-          <h3 className="mb-3 text-[13px] font-semibold text-db-text">Publication</h3>
+        <div className="db-card p-5">
+          <h3 className="db-eyebrow mb-4">Publication</h3>
 
-          <label className="mb-1 block text-[12px] font-medium text-db-muted">Statut</label>
+          <label className="field-label">Statut</label>
           <select
             name="status"
             defaultValue={defaultValues?.status ?? "PUBLISHED"}
-            className="mb-4 w-full rounded-lg border border-db-border px-3 py-2 text-[13px] outline-none focus:border-accent"
+            className="field field-sm mb-4"
           >
             <option value="DRAFT">Brouillon</option>
             <option value="PUBLISHED">Publié</option>
@@ -418,13 +418,13 @@ export function ProductForm({
           </label>
 
           {missingImages > 0 && (
-            <p className="mt-3 rounded-lg bg-db-warning-tint px-3 py-2 text-[12px] text-db-warning">
+            <p className="mt-3 rounded-[12px] bg-signal-tint px-3 py-2 text-[12.5px] text-signal-deep">
               {missingImages} variante{missingImages > 1 ? "s" : ""} sans photo.
             </p>
           )}
 
           {state?.error && (
-            <p className="mt-3 rounded-lg border border-db-danger/20 bg-db-danger-tint px-3 py-2 text-[12.5px] text-db-danger">
+            <p className="mt-3 rounded-[12px] bg-db-danger-tint px-3 py-2 text-[12.5px] font-medium text-db-danger">
               {state.error}
             </p>
           )}
@@ -432,7 +432,7 @@ export function ProductForm({
           <button
             type="submit"
             disabled={pending}
-            className="mt-4 w-full rounded-lg bg-accent py-2.5 text-[13.5px] font-semibold text-white transition hover:bg-accent-deep disabled:opacity-60"
+            className="btn btn-primary mt-5 w-full"
           >
             {pending ? "Enregistrement…" : submitLabel}
           </button>
@@ -441,7 +441,7 @@ export function ProductForm({
             <Link
               href={`/boutique/${productSlug}`}
               target="_blank"
-              className="mt-2 block w-full rounded-lg border border-db-border py-2.5 text-center text-[13px] font-medium text-db-text transition hover:border-ink"
+              className="mt-2 block w-full btn btn-secondary btn-sm w-full"
             >
               Aperçu sur la boutique ↗
             </Link>

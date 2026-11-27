@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { randomUUID } from "crypto";
-import { getSession } from "@/lib/session";
+import { getMerchant } from "@/lib/auth";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES: Record<string, string> = {
@@ -11,8 +11,8 @@ const ALLOWED_TYPES: Record<string, string> = {
 };
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session || session.role !== "MERCHANT") {
+  const merchant = await getMerchant();
+  if (!merchant) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 

@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { formatFCFA } from "@/lib/format";
+import { expirePromotions } from "@/lib/promotions";
 import { BUDGETS, fromPrice, productWithVariantsInclude, storefrontFilter, toProductCardData } from "@/lib/catalog";
 import type { ProductWithVariants } from "@/lib/catalog";
+import { getHomeLayout, getLiveBanners, priceForHref, toHeroSlide, toPromoTile, type HomeSectionId } from "@/lib/content";
 import { HomeHero, type BrandRow } from "@/components/home/HomeHero";
 import { HeroBanner } from "@/components/home/HeroBanner";
-import { PromoTiles, ServiceStrip, Shortcuts, VideoBanner, type PromoTile } from "@/components/home/Promos";
+import { PromoTiles, ServiceStrip, Shortcuts, VideoBanner } from "@/components/home/Promos";
 import { ProductTabs } from "@/components/home/ProductTabs";
 import { ProductCard } from "@/components/store/ProductCard";
 import {
@@ -21,11 +22,6 @@ export const dynamic = "force-dynamic";
 
 const inPhones = { category: { OR: [{ slug: "smartphones" }, { parent: { slug: "smartphones" } }] } };
 
-
-function minOf(products: ProductWithVariants[]) {
-  return products.length ? Math.min(...products.map(fromPrice)) : undefined;
-}
-
 function stats(products: ProductWithVariants[]) {
   return {
     count: products.length,
@@ -34,7 +30,8 @@ function stats(products: ProductWithVariants[]) {
 }
 
 export default async function HomePage() {
-  const [phones, accessories, series] = await Promise.all([
+  await expirePromotions();
+  const [phones, accessories, series, categories, layout, heroBanners, tileBanners, homeCollections] = await Promise.all([
     prisma.product.findMany({
       where: { AND: [storefrontFilter, inPhones], variants: { some: {} } },
       include: productWithVariantsInclude,
@@ -50,7 +47,27 @@ export default async function HomePage() {
       orderBy: { position: "asc" },
       select: { name: true, slug: true },
     }),
+    prisma.category.findMany({ select: { id: true, parent: { select: { slug: true } } } }),
+    getHomeLayout(),
+    getLiveBanners("HERO"),
+    getLiveBanners("TILE"),
+    prisma.collection.findMany({
+      where: { active: true, onHome: true },
+      orderBy: { position: "asc" },
+      include: {
+        products: {
+          orderBy: { position: "asc" },
+          where: { product: { AND: [storefrontFilter], variants: { some: {} } } },
+          include: { product: { include: productWithVariantsInclude } },
+          take: 8,
+        },
+      },
+    }),
   ]);
+
+  const all = [...phones, ...accessories];
+  const parentSlugOf = new Map(categories.map((c) => [c.id, c.parent?.slug ?? null]));
+  const priceOf = (href: string) => priceForHref(href, all, parentSlugOf);
 
   const byBrand = (b: string) => phones.filter((p) => p.brand.toLowerCase() === b);
   const apple = byBrand("apple");
@@ -100,7 +117,6 @@ export default async function HomePage() {
     { brand: "Samsung · Google", rows: seriesRows.filter((s) => !s.slug.startsWith("iphone")) },
   ].filter((g) => g.rows.length > 0);
 
-  const bySlug = (slug: string) => phones.filter((p) => p.slug === slug);
   const maxDiscount = Math.max(
     0,
     ...phones.flatMap((p) =>
@@ -109,68 +125,26 @@ export default async function HomePage() {
         .map((v) => Math.round(100 - (v.price / v.compareAtPrice!) * 100))
     )
   );
-  const dès = (n?: number) => (n !== undefined ? `dès ${formatFCFA(n)}` : undefined);
 
-  const tiles: PromoTile[] = [
-    {
-      key: "air",
-      eyebrow: "iPhone Air",
-      title: "L'iPhone le plus fin.",
-      price: dès(minOf(bySlug("iphone-air"))),
-      href: "/boutique/iphone-air",
-      tone: "sky",
-      images: [{ src: "/images/banner/iphone-air.webp", alt: "iPhone Air", className: "-bottom-6 -right-4 w-[52%] rotate-[8deg]" }],
-    },
-    {
-      key: "iphone17",
-      eyebrow: "iPhone 17",
-      title: "Le nouveau standard.",
-      price: dès(minOf(bySlug("iphone-17"))),
-      href: "/boutique/iphone-17",
-      tone: "paper",
-      images: [
-        { src: "/images/banner/iphone17-white.webp", alt: "iPhone 17 blanc", className: "-bottom-4 right-[18%] w-[38%] -rotate-[6deg]" },
-        { src: "/images/banner/iphone17-black.webp", alt: "iPhone 17 noir", className: "-bottom-10 -right-3 w-[36%] rotate-[7deg]" },
-      ],
-    },
-    {
-      key: "accessoires",
-      eyebrow: "Accessoires",
-      title: "Protégez votre téléphone.",
-      price: dès(accessoryRow.from ?? undefined),
-      href: "/boutique?categorie=accessoires",
-      tone: "peach",
-      images: [{ src: "/images/banner/case-magsafe.webp", alt: "Coque MagSafe pour iPhone", className: "-bottom-8 -right-2 w-[34%] rotate-[10deg]" }],
-    },
-    {
-      key: "offres",
-      eyebrow: "Offres du moment",
-      title: maxDiscount > 0 ? `Jusqu'à −${maxDiscount} %` : "Les bons plans",
-      price: "Sur une sélection de téléphones",
-      href: "/boutique?deals=1",
-      tone: "ink",
-      images: [{ src: "/images/banner/iphone12-range.webp", alt: "iPhone 12 en cinq coloris", className: "-bottom-6 -right-8 w-[64%] -rotate-[4deg]" }],
-    },
-  ];
+  const slides = heroBanners.map((b) => toHeroSlide(b, priceOf(b.href)));
+  const tiles = tileBanners.map((b) => toPromoTile(b, priceOf(b.href), maxDiscount));
+  const collections = homeCollections.filter((c) => c.products.length > 0);
 
-  return (
-    <div>
-      <HeroBanner
-        prices={{
-          iphonePro: minOf(phones.filter((p) => p.category.slug === "iphone-17" && p.name.includes("Pro"))),
-          samsung: minOf(samsung),
-          iphone: minOf(apple),
-        }}
-      />
-      <ServiceStrip />
-      <Shortcuts />
-      <PromoTiles tiles={tiles} />
-      <HomeHero brands={brands} accessories={accessoryRow} popular={popular} totalModels={phones.length} />
+  // Numbered headings follow the order chosen in the dashboard.
+  let n = 0;
+  const next = () => String(++n).padStart(2, "0");
 
+  const render: Record<HomeSectionId, () => React.ReactNode> = {
+    hero: () => (slides.length ? <HeroBanner slides={slides} /> : null),
+    services: () => <ServiceStrip />,
+    shortcuts: () => <Shortcuts />,
+    tiles: () => (tiles.length ? <PromoTiles tiles={tiles} /> : null),
+    finder: () => <HomeHero brands={brands} accessories={accessoryRow} popular={popular} totalModels={phones.length} />,
+    selection: () => (
       <section className="section-space">
         <div className="container-page">
           <SectionHeading
-            index="01"
+            index={next()}
             label="Sélection"
             title="Les modèles du moment."
             action={{ label: "Tous les téléphones", href: "/boutique?categorie=smartphones" }}
@@ -180,16 +154,35 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      <VideoBanner price={minOf(bySlug("iphone-17"))} />
-      <BudgetGrid bands={bands} />
-      <SeriesIndex groups={groups} />
-
-      {accessories.length > 0 && (
+    ),
+    collections: () =>
+      collections.map((c) => (
+        <section key={c.id} className="section-space">
+          <div className="container-page">
+            <SectionHeading
+              index={next()}
+              label="Collection"
+              title={c.name}
+              action={{ label: "Voir la collection", href: `/boutique?collection=${c.slug}` }}
+            />
+            {c.description && <p className="mt-4 max-w-[60ch] text-[15px] text-slate md:ml-[204px]">{c.description}</p>}
+            <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
+              {c.products.slice(0, 4).map((cp) => (
+                <ProductCard key={cp.productId} product={card(cp.product)} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )),
+    video: () => <VideoBanner price={priceOf("/boutique/iphone-17")} />,
+    budget: () => <BudgetGrid bands={bands} index={next()} />,
+    series: () => <SeriesIndex groups={groups} index={next()} />,
+    accessories: () =>
+      accessories.length > 0 ? (
         <section className="section-space">
           <div className="container-page">
             <SectionHeading
-              index="04"
+              index={next()}
               label="Accessoires"
               title="Ce qui va avec : charge, protection, écoute."
               action={{ label: "Tous les accessoires", href: "/boutique?categorie=accessoires" }}
@@ -201,10 +194,20 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-      )}
+      ) : null,
+    promises: () => <Promises index={next()} />,
+    advice: () => <AdviceBand />,
+  };
 
-      <Promises />
-      <AdviceBand />
+  return (
+    <div>
+      {layout
+        .filter((s) => s.visible)
+        .map((s) => (
+          <div key={s.id} data-section={s.id}>
+            {render[s.id]()}
+          </div>
+        ))}
     </div>
   );
 }

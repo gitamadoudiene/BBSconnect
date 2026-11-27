@@ -4,15 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/session";
+import { requireMerchant } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
-
-async function requireMerchant() {
-  const session = await getSession();
-  if (!session || session.role !== "MERCHANT") {
-    redirect("/connexion?redirect=/dashboard");
-  }
-}
 
 const categorySchema = z.object({
   name: z.string().min(2, "Le nom est requis"),

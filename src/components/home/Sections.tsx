@@ -36,11 +36,11 @@ export function SectionHeading({
 
 export type BudgetBand = { label: string; caption: string; href: string; count: number };
 
-export function BudgetGrid({ bands }: { bands: BudgetBand[] }) {
+export function BudgetGrid({ bands, index = "02" }: { bands: BudgetBand[]; index?: string }) {
   return (
     <section className="section-space">
       <div className="container-page">
-        <SectionHeading index="02" label="Par budget" title="Partez de votre budget, on s'occupe du reste." />
+        <SectionHeading index={index} label="Par budget" title="Partez de votre budget, on s'occupe du reste." />
         <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           {bands.map((b) => (
             <Link
@@ -71,11 +71,11 @@ export function BudgetGrid({ bands }: { bands: BudgetBand[] }) {
 
 export type SeriesRow = { name: string; slug: string; count: number; from: number | null };
 
-export function SeriesIndex({ groups }: { groups: { brand: string; rows: SeriesRow[] }[] }) {
+export function SeriesIndex({ groups, index = "03" }: { groups: { brand: string; rows: SeriesRow[] }[]; index?: string }) {
   return (
     <section className="section-space bg-paper">
       <div className="container-page">
-        <SectionHeading index="03" label="Les gammes" title="Toutes les générations, rangées comme il faut." />
+        <SectionHeading index={index} label="Les gammes" title="Toutes les générations, rangées comme il faut." />
         <div className="mt-10 grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-2">
           {groups.map((g) => (
             <div key={g.brand}>
@@ -131,11 +131,11 @@ const promises = [
   },
 ];
 
-export function Promises() {
+export function Promises({ index = "05" }: { index?: string }) {
   return (
     <section className="section-space">
       <div className="container-page">
-        <SectionHeading index="05" label="Nos engagements" title="Acheter un téléphone ne devrait pas être un pari." />
+        <SectionHeading index={index} label="Nos engagements" title="Acheter un téléphone ne devrait pas être un pari." />
         <ol className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-[24px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {promises.map((p, i) => (
             <li key={p.title} className="flex flex-col bg-white p-6 lg:min-h-[240px] lg:p-7">

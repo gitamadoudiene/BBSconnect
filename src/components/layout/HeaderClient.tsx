@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import { ChevronDown, Heart, LayoutDashboard, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import clsx from "clsx";
 import { Logo } from "@/components/ui/Logo";
 import { CartCount, WishlistCount } from "./CartBadge";
@@ -26,7 +26,15 @@ const nav: NavItem[] = [
   { label: "Offres", href: "/boutique?deals=1" },
 ];
 
-export function HeaderClient({ series, session }: { series: NavSeries[]; session: SessionPayload | null }) {
+export function HeaderClient({
+  series,
+  session,
+  announcement,
+}: {
+  series: NavSeries[];
+  session: SessionPayload | null;
+  announcement: string;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -63,7 +71,7 @@ export function HeaderClient({ series, session }: { series: NavSeries[]; session
       {/* Utility strip */}
       <div className="hidden border-b border-line bg-paper lg:block">
         <div className="container-page flex h-9 items-center justify-between font-mono text-[11.5px] text-slate">
-          <p>Livraison 24h à Dakar · Paiement à la livraison · Produits garantis</p>
+          <p className="truncate">{announcement}</p>
           <div className="flex items-center gap-5">
             <a href="tel:+221788379919" className="tabular hover:text-ink">
               78 837 99 19
@@ -101,7 +109,7 @@ export function HeaderClient({ series, session }: { series: NavSeries[]; session
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors hover:bg-paper"
+                  className="whitespace-nowrap rounded-xl px-3 py-2 text-[14.5px] font-medium text-ink transition-colors hover:bg-paper"
                 >
                   {item.label}
                 </Link>
@@ -173,6 +181,17 @@ export function HeaderClient({ series, session }: { series: NavSeries[]; session
           >
             <Search className="h-[18px] w-[18px]" />
           </Link>
+          {session?.role === "MERCHANT" && (
+            <Link
+              href="/dashboard"
+              aria-label="Espace commerçant"
+              title="Espace commerçant"
+              className="flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-accent/30 bg-accent-tint px-2.5 text-[13.5px] font-semibold text-accent-deep transition-colors hover:border-accent xl:px-3"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden xl:inline">Espace commerçant</span>
+            </Link>
+          )}
           <Link
             href={accountHref}
             aria-label="Mon compte"
@@ -247,7 +266,12 @@ export function HeaderClient({ series, session }: { series: NavSeries[]; session
               })}
             </nav>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            {session?.role === "MERCHANT" && (
+              <Link href="/dashboard" className="btn btn-accent mt-6 w-full">
+                <LayoutDashboard className="h-4 w-4" /> Espace commerçant
+              </Link>
+            )}
+            <div className="mt-3 grid grid-cols-2 gap-3">
               <Link href={accountHref} className="btn btn-secondary">
                 <User className="h-4 w-4" /> {session ? "Mon compte" : "Connexion"}
               </Link>

@@ -79,7 +79,7 @@ export function SingleImageUploader({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex h-32 w-32 flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-db-border text-center transition hover:border-accent"
+          className="flex h-32 w-32 flex-col items-center justify-center gap-1.5 rounded-[18px] border-2 border-dashed border-db-border text-center transition hover:border-accent"
         >
           {uploading ? (
             <Loader2 className="h-5 w-5 animate-spin text-accent" />

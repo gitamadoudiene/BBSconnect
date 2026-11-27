@@ -10,7 +10,7 @@ export const periodLabels: Record<Period, string> = {
 
 export function resolvePeriod(value: string | undefined): Period {
   if (value && value in periodLabels) return value as Period;
-  return "30d";
+  return "90d";
 }
 
 export function getPeriodRange(period: Period) {

@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { track } from "@/lib/analytics-client";
 
 export type CartItem = {
   variantId: string;
@@ -30,6 +31,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (item, quantity = 1) => {
+        track("ADD_TO_CART", { productSlug: item.productSlug, value: item.price * quantity });
         set((state) => {
           const existing = state.items.find((i) => i.variantId === item.variantId);
           if (existing) {

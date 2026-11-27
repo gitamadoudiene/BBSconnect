@@ -124,7 +124,7 @@ export function ImageUploader({
           handleFiles(e.dataTransfer.files);
         }}
         className={clsx(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 text-center transition",
+          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[18px] border-2 border-dashed px-6 py-8 text-center transition",
           dragging ? "border-accent bg-accent-tint" : "border-line hover:border-slate"
         )}
       >
@@ -165,7 +165,7 @@ export function ImageUploader({
               onDragStart={() => handleDragStart(i)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDropReorder(i)}
-              className="group relative aspect-square cursor-grab overflow-hidden rounded-lg bg-mist ring-1 ring-line active:cursor-grabbing"
+              className="group relative aspect-square cursor-grab overflow-hidden rounded-[14px] bg-paper ring-1 ring-line active:cursor-grabbing"
             >
               <Image src={img.url} alt="" fill sizes="120px" className="object-cover" />
 

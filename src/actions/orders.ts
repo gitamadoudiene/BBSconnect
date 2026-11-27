@@ -1,22 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/session";
+import { requireMerchant } from "@/lib/auth";
 import type { OrderStatus } from "@prisma/client";
 
-async function requireMerchant() {
-  const session = await getSession();
-  if (!session || session.role !== "MERCHANT") {
-    redirect("/connexion?redirect=/dashboard");
-  }
-  return session;
-}
+const statusSchema = z.enum(["PENDING", "PAID", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]);
 
 export async function updateOrderStatusAction(orderId: string, status: OrderStatus) {
   await requireMerchant();
-  await prisma.order.update({ where: { id: orderId }, data: { status } });
-  revalidatePath("/dashboard/commandes");
-  revalidatePath(`/dashboard/commandes/${orderId}`);
+  const parsed = statusSchema.safeParse(status);
+  if (!parsed.success || typeof orderId !== "string") return;
+  await prisma.order.update({ where: { id: orderId }, data: { status: parsed.data } });
+  revalidatePath("/dashboard", "layout");
 }

@@ -10,8 +10,8 @@ export function PeriodFilter({ active, basePath = "/dashboard" }: { active: Peri
           key={p}
           href={`${basePath}?periode=${p}`}
           className={clsx(
-            "rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition",
-            active === p ? "bg-ink text-white" : "text-db-muted hover:bg-db-bg"
+            "pill",
+            active === p && "pill-active"
           )}
         >
           {periodLabels[p]}
